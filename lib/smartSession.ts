@@ -5,6 +5,9 @@ import {
 
 import { encodeAbiParameters, encodeFunctionData, getAddress, toBytes, toHex } from 'viem'
 import { SafeSmartAccountClient } from './permissionless';
+import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts';
+
+const privateKeySession = generatePrivateKey()
 
 export const install7579SessionModule = async (
     safe: SafeSmartAccountClient,
@@ -25,7 +28,7 @@ export const install7579SessionModule = async (
                     ],
                     [
                         BigInt(1),
-                        ["0x363cbe9B56c4B92010e6D08684bc20ab13a07BB4"],
+                        [privateKeyToAddress(privateKeySession)],
                     ]
                 ),
                 salt: toHex(toBytes('2', { size: 32 })),
@@ -91,3 +94,4 @@ export const install7579SessionModule = async (
     return receipt.receipt.transactionHash
 }
 
+export const SessionKeyTransaction = async ()
