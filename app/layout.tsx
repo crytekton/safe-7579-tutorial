@@ -52,11 +52,10 @@ export default function RootLayout ({
           </div>
         </nav>
         <div style={{ width: '100%', textAlign: 'center' }}>
-          <h1>Schedule Transfers</h1>
+          <h1>Smart session</h1>
 
           <div>
-            Create a new ERC-7579-compatible Safe Smart Account and use it to schedule
-            transactions.
+            Create a new ERC-7579-compatible Safe Smart Account and delegate transaction signing
           </div>
         </div>
         <div

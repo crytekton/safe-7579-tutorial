@@ -3,15 +3,15 @@ import { useState, useEffect } from 'react'
 import {
   install7579Module,
   scheduleTransfer,
-  scheduledTransfersModuleAddress
 } from '@/lib/scheduledTransfers'
+import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
+import { SafeSmartAccountClient } from '@/lib/permissionless'
+import { install7579SessionModule } from '@/lib/smartSession'
 
-const ScheduledTransferForm: React.FC<{ safe: any }> = ({
+const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
 }) => {
   const [recipient, setRecipient] = useState('')
-  const [amount, setAmount] = useState(0)
-  const [date, setDate] = useState('')
   const [txHash, setTxHash] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -21,8 +21,8 @@ const ScheduledTransferForm: React.FC<{ safe: any }> = ({
     const init7579Module = async () => {
       const isModuleInstalled = await safe
         .isModuleInstalled({
-          type: 'executor',
-          address: scheduledTransfersModuleAddress,
+          type: 'validator',
+          address: SMART_SESSIONS_ADDRESS,
           context: '0x'
         })
         .catch(() => false)
@@ -40,7 +40,7 @@ const ScheduledTransferForm: React.FC<{ safe: any }> = ({
         ERC-7579 module installed:{' '}
         {is7579Installed
           ? 'Yes ✅'
-          : 'No, schedule a transfer below to install it!'}{' '}
+          : 'No, Click to create a session key'}{' '}
       </div>
       <div
         style={{
@@ -52,63 +52,18 @@ const ScheduledTransferForm: React.FC<{ safe: any }> = ({
           marginBottom: '40px'
         }}
       >
-        <div>
-          <label htmlFor='address'>Address:</label>
-          <input
-            style={{ marginLeft: '20px' }}
-            id='address'
-            placeholder='0x...'
-            onChange={e => setRecipient(e.target.value)}
-            value={recipient}
-          />
-        </div>
-        <div>
-          <label htmlFor='amount'>Amount (integer):</label>
-          <input
-            style={{ marginLeft: '20px' }}
-            id='amount'
-            type='number'
-            placeholder='1'
-            min='0'
-            onChange={e => setAmount(Number(e.target.value))}
-            value={amount}
-          />
-        </div>
-        <div>
-          <label htmlFor='date'>Date/Time:</label>
-          <input
-            style={{ marginLeft: '20px' }}
-            id='date'
-            type='datetime-local'
-            onChange={e => setDate(e.target.value)}
-            value={date}
-          />
-        </div>
-
         <button
-          disabled={!recipient || !amount || !date || loading}
+          disabled={loading}
           onClick={async () => {
             setLoading(true)
             setError(false)
-            const startDate = new Date(date).getTime() / 1000
-            const transferInputData = {
-              startDate: 1710759572,
-              repeatEvery: 60 * 60 * 24,
-              numberOfRepeats: 1,
-              amount,
-              recipient: recipient as `0x${string}`
-            }
 
-            await (!is7579Installed ? install7579Module : scheduleTransfer)(
+            await (!is7579Installed ? install7579SessionModule : install7579SessionModule)(
               safe,
-              transferInputData
             )
               .then(txHash => {
                 setTxHash(txHash)
                 setLoading(false)
-                setRecipient('')
-                setAmount(0)
-                setDate('')
                 setIs7579Installed(true)
               })
               .catch(err => {
@@ -118,7 +73,7 @@ const ScheduledTransferForm: React.FC<{ safe: any }> = ({
               })
           }}
         >
-          Schedule Transfer
+          Setup the session
         </button>
       </div>
       <div>
@@ -151,4 +106,4 @@ const ScheduledTransferForm: React.FC<{ safe: any }> = ({
   )
 }
 
-export default ScheduledTransferForm
+export default SessionKeyForm

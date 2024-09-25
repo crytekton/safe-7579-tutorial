@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react'
 
 import {
+  SafeSmartAccountClient,
   getSmartAccountClient,
   publicClient,
-  type SafeSmartAccountClient
 } from '../lib/permissionless'
 
-import ScheduledTransferForm from '../components/ScheduledTransferForm'
 import abi from '../abi/ScheduleTransfersModule.json'
 import { scheduledTransfersModuleAddress } from '@/lib/scheduledTransfers'
-import ScheduledTransfers from '@/components/ScheduledTransfers'
-import ProcessedTransfers from '@/components/ProcessedTransfers'
+import SessionKeyForm from '@/components/SessionKeyForm'
 
 export default function Home () {
   const [safe, setSafe] = useState<SafeSmartAccountClient | undefined>()
@@ -53,7 +51,7 @@ export default function Home () {
         </>
       ) : (
         <>
-          <ScheduledTransferForm safe={safe} />
+        <SessionKeyForm safe={safe}/>
           <div
             style={{
               width: '100%',
@@ -61,8 +59,6 @@ export default function Home () {
               justifyContent: 'center'
             }}
           >
-            <ScheduledTransfers transfers={logs} />
-            <ProcessedTransfers transfers={logs} />
           </div>
         </>
       )}
