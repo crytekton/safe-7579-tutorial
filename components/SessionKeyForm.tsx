@@ -6,7 +6,7 @@ import {
 } from '@/lib/scheduledTransfers'
 import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { install7579SessionModule } from '@/lib/smartSession'
+import { SessionKeyTransaction, install7579SessionModule } from '@/lib/smartSession'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
@@ -58,7 +58,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             setLoading(true)
             setError(false)
 
-            await (!is7579Installed ? install7579SessionModule : install7579SessionModule)(
+            await (!is7579Installed ? install7579SessionModule : SessionKeyTransaction)(
               safe,
             )
               .then(txHash => {
