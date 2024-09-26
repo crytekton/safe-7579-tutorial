@@ -13,17 +13,14 @@ import {
 
 import { Address, Hex, PublicClient, encodeAbiParameters, encodeFunctionData, http, toBytes, toHex, zeroAddress } from 'viem'
 import { SafeSmartAccountClient, pimlicoUrl, publicClient } from './permissionless';
-import { privateKeyToAccount } from 'viem/accounts';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { abi } from './abi';
 import { sendUserOp } from './sendUserOp';
 import { createBundlerClient } from 'viem/account-abstraction';
 import { sepolia } from 'viem/chains';
 
-let privateKeySession = "0x5e6e0e7445eb80a4926c61730fb72ca0053f9db2621064534a349d75797af3ac" as `0x${string}`
-// if (!privateKeySession) {
-//     privateKeySession = generatePrivateKey()
-//     console.log(privateKeySession)
-// }
+let privateKeySession = generatePrivateKey()
+
 const action = {
     actionTarget:
         '0xa564cB165815937967a7d018B7F34B907B52fcFd' as Address,
