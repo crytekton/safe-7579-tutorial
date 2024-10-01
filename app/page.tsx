@@ -11,6 +11,7 @@ import {
 import abi from '../abi/ScheduleTransfersModule.json'
 import { scheduledTransfersModuleAddress } from '@/lib/scheduledTransfers'
 import SessionKeyForm from '@/components/SessionKeyForm'
+import { DynamicWidget } from '@dynamic-labs/sdk-react-core'
 
 export default function Home () {
   const [safe, setSafe] = useState<SafeSmartAccountClient | undefined>()
@@ -45,6 +46,7 @@ export default function Home () {
     <>
       {safe == null ? (
         <>
+        <DynamicWidget />
           <button onClick={handleLoadSafe} style={{ marginTop: '40px' }}>
             Create Safe
           </button>

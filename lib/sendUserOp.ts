@@ -16,15 +16,16 @@ export type ExecuteAction = {
 type SendUserOpParams = {
   actions: ExecuteAction[]
   account: Account
-  validator?: Address
   signUserOpHash?: (userOpHash: Hex) => Promise<Hex>
   getDummySignature?: () => Promise<Hex>
+  key?: bigint
 }
 export const sendUserOp = async ({
   actions,
   account,
   signUserOpHash,
   getDummySignature,
+  key
 }: SendUserOpParams) => {
   const smartClient = createSmartAccountClient({
     account: account,
@@ -42,12 +43,7 @@ export const sendUserOp = async ({
   const nonce = await getAccountNonce(publicClient, {
     address: account.address,
     entryPointAddress: entryPoint07Address,
-    key: BigInt(
-        pad(SMART_SESSIONS_ADDRESS, {
-            dir: 'right',
-            size: 24,
-        }),
-    ),
+    key
 })
 
   if (signUserOpHash) {
