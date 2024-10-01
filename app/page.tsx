@@ -11,13 +11,16 @@ import {
 import abi from '../abi/ScheduleTransfersModule.json'
 import { scheduledTransfersModuleAddress } from '@/lib/scheduledTransfers'
 import SessionKeyForm from '@/components/SessionKeyForm'
-import { DynamicWidget } from '@dynamic-labs/sdk-react-core'
+import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core'
 
-export default function Home () {
+
+
+export default function Home() {
   const [safe, setSafe] = useState<SafeSmartAccountClient | undefined>()
   const [logs, setLogs] = useState<any[]>([])
 
   const handleLoadSafe = async () => {
+
     const safe = await getSmartAccountClient()
     setSafe(safe)
   }
@@ -46,14 +49,14 @@ export default function Home () {
     <>
       {safe == null ? (
         <>
-        <DynamicWidget />
+
           <button onClick={handleLoadSafe} style={{ marginTop: '40px' }}>
             Create Safe
           </button>
         </>
       ) : (
         <>
-        <SessionKeyForm safe={safe}/>
+          <SessionKeyForm safe={safe} />
           <div
             style={{
               width: '100%',

@@ -36,6 +36,35 @@ const usdtAddress = "0xbDeaD2A70Fe794D2f97b37EFDE497e68974a296d" as Address
 const mintSelector = '0x1249c58b' as Hex
 const transferSelector = '0xa9059cbb' as Hex
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const actionMint = {
     actionTarget: usdtAddress,
     actionTargetSelector: mintSelector,
@@ -89,13 +118,13 @@ export const install7579SessionModule = async (
     safe: SafeSmartAccountClient,
 ) => {
 
-    const passkey = await createPasskey()
-    storePasskeyInLocalStorage(passkey)
-    const passkeyModule = getWebAuthnValidator({
-        pubKeyX: Number(passkey.coordinates.x),
-        pubKeyY: Number(passkey.coordinates.y),
-        authenticatorId: "testID"
-    })
+    // const passkey = await createPasskey()
+    // storePasskeyInLocalStorage(passkey)
+    // const passkeyModule = getWebAuthnValidator({
+    //     pubKeyX: Number(passkey.coordinates.x),
+    //     pubKeyY: Number(passkey.coordinates.y),
+    //     authenticatorId: "testID"
+    // })
 
     const module = getSmartSessionsValidator({
         sessions: [session],
@@ -146,40 +175,40 @@ export const install7579SessionModule = async (
                     ]
                 })
             },
-            {
-                to: safe.account.address,
-                value: BigInt(0),
-                data: encodeFunctionData({
-                    abi: [
-                        {
-                            name: 'installModule',
-                            type: 'function',
-                            stateMutability: 'nonpayable',
-                            inputs: [
-                                {
-                                    type: 'uint256',
-                                    name: 'moduleTypeId'
-                                },
-                                {
-                                    type: 'address',
-                                    name: 'module'
-                                },
-                                {
-                                    type: 'bytes',
-                                    name: 'initData'
-                                }
-                            ],
-                            outputs: []
-                        }
-                    ],
-                    functionName: 'installModule',
-                    args: [
-                        1n,
-                        WEBAUTHN_VALIDATOR_ADDRESS,
-                        passkeyModule.initData || '0x'
-                    ]
-                })
-            }
+            // {
+            //     to: safe.account.address,
+            //     value: BigInt(0),
+            //     data: encodeFunctionData({
+            //         abi: [
+            //             {
+            //                 name: 'installModule',
+            //                 type: 'function',
+            //                 stateMutability: 'nonpayable',
+            //                 inputs: [
+            //                     {
+            //                         type: 'uint256',
+            //                         name: 'moduleTypeId'
+            //                     },
+            //                     {
+            //                         type: 'address',
+            //                         name: 'module'
+            //                     },
+            //                     {
+            //                         type: 'bytes',
+            //                         name: 'initData'
+            //                     }
+            //                 ],
+            //                 outputs: []
+            //             }
+            //         ],
+            //         functionName: 'installModule',
+            //         args: [
+            //             1n,
+            //             WEBAUTHN_VALIDATOR_ADDRESS,
+            //             passkeyModule.initData || '0x'
+            //         ]
+            //     })
+            // }
         ],
         callGasLimit: 2000000n
     })
@@ -188,6 +217,14 @@ export const install7579SessionModule = async (
 
     return receipt.receipt.transactionHash
 }
+
+
+
+
+
+
+
+
 
 export const sessionKeyMint = async (safe: SafeSmartAccountClient) => {
     const permissionId = (await getPermissionId({

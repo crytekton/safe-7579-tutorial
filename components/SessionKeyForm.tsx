@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react'
 
 import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { createSession, install7579SessionModule, passkeySign, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
+import { install7579SessionModule, passkeySign, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
 }) => {
   const [txHash, setTxHash] = useState('' as `0x${string}`)
-  const [txHash2, setTxHash2] = useState('' as `0x${string}`)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [is7579Installed, setIs7579Installed] = useState(false)

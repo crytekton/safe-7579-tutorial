@@ -26,7 +26,7 @@ const privateKey =
     const pk = generatePrivateKey()
     console.log('Private key to add to .env.local:', `PRIVATE_KEY=${pk}`)
     return pk
-  })()
+  })() as Hex
 
 export const publicClient = createPublicClient({
   chain: sepolia,
