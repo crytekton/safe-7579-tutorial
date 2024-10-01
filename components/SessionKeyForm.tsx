@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { createSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
+import { createSession, install7579SessionModule, passkeySign, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
@@ -108,6 +108,26 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           }}
         >
           Transfer USDT
+        </button>
+        <button
+          disabled={loading || !is7579Installed}
+          onClick={async () => {
+            setLoading(true)
+            setError(false)
+
+            passkeySign(safe)
+              .then(txHash => {
+                setTxHash(txHash)
+                setLoading(false)
+              })
+              .catch(err => {
+                console.error(err)
+                setLoading(false)
+                setError(true)
+              })
+          }}
+        >
+          Mint with passkey
         </button>
       </div>
       
