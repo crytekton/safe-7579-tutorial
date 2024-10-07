@@ -1,14 +1,15 @@
-import { Chain, Hex, HttpTransport, createPublicClient, http } from 'viem'
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { Chain, Client, Hex, HttpTransport, createPublicClient, createWalletClient, custom, http } from 'viem'
+import { generatePrivateKey, privateKeyToAccount, toAccount } from 'viem/accounts'
 import { SmartAccountClient, createSmartAccountClient } from "permissionless"
 import { sepolia } from 'viem/chains'
 import { Erc7579Actions, erc7579Actions } from 'permissionless/actions/erc7579'
-import { ToSafeSmartAccountReturnType, toSafeSmartAccount } from "permissionless/accounts"
+import { ToSafeSmartAccountReturnType, toSafeSmartAccount, toSimpleSmartAccount } from "permissionless/accounts"
 import {
   createPimlicoClient,
 } from 'permissionless/clients/pimlico'
 import { entryPoint07Address } from "viem/account-abstraction"
 import { PasskeyArgType, extractPasskeyData } from '@safe-global/protocol-kit'
+
 
 export const STORAGE_PASSKEY_LIST_KEY = 'safe_passkey_list'
 export type SafeSmartAccountClient = SmartAccountClient<HttpTransport, Chain, ToSafeSmartAccountReturnType<'0.7'>> & Erc7579Actions<ToSafeSmartAccountReturnType<'0.7'>>
@@ -116,12 +117,12 @@ export function getPasskeyFromRawId(passkeyRawId: string): PasskeyArgType {
 }
 
 
-export const getSmartAccountClient = async () => {
+export const getSmartAccountClient = async (signer: any) => {
   // const passkey = await createPasskey()
   // console.log(passkey)
   const safeAccount = await toSafeSmartAccount({
     client: publicClient,
-    owners: [privateKeyToAccount(privateKey)],
+    owners: [signer],
 
     safe4337ModuleAddress, // These are not meant to be used in production as of now.
     erc7579LaunchpadAddress, // These are not meant to be used in production as of now.
@@ -131,7 +132,6 @@ export const getSmartAccountClient = async () => {
     }, // global entrypoint
     version: "1.4.1",
   })
-
 
   console.log(`Smart account address: https://sepolia.etherscan.io/address/${safeAccount.address}`)
 

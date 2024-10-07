@@ -5,45 +5,38 @@ import { useEffect, useState } from 'react'
 import {
   SafeSmartAccountClient,
   getSmartAccountClient,
-  publicClient,
 } from '../lib/permissionless'
 
-import abi from '../abi/ScheduleTransfersModule.json'
-import { scheduledTransfersModuleAddress } from '@/lib/scheduledTransfers'
 import SessionKeyForm from '@/components/SessionKeyForm'
 import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core'
+import { isEthereumWallet } from '@dynamic-labs/ethereum'
+import { Client } from 'viem'
 
 
 
 export default function Home() {
   const [safe, setSafe] = useState<SafeSmartAccountClient | undefined>()
-  const [logs, setLogs] = useState<any[]>([])
-
-  const handleLoadSafe = async () => {
-
-    const safe = await getSmartAccountClient()
-    setSafe(safe)
-  }
+  const [provider, setProvider] = useState<Client | null>()
+  const { primaryWallet } = useDynamicContext()
+  const isLoggedIn = useIsLoggedIn()
 
   useEffect(() => {
-    const unwatch = publicClient.watchContractEvent({
-      address: scheduledTransfersModuleAddress,
-      abi,
-      // eventName: 'ExecutionAdded', // Optional
-      // args: { smartAccount: safe?.account.address }, // Optional
-      onLogs: logs => {
-        setLogs(_logs => [
-          ..._logs,
-          ...logs.filter(
-            log =>
-              !_logs.map(l => l.transactionHash).includes(log.transactionHash)
-          )
-        ])
+    const init = async () => {
+      if (isLoggedIn && primaryWallet && isEthereumWallet(primaryWallet)) {
+        setProvider(await primaryWallet.getWalletClient())
       }
-    })
-    return () => unwatch()
-    // }, [safe]) // Optional
-  }, [])
+    }
+    init()
+  }, [isLoggedIn, primaryWallet])
+
+  const handleLoadSafe = async () => {
+    if (!provider) {
+      return
+    }
+    console.log(provider)
+    const safe = await getSmartAccountClient(provider)
+    setSafe(safe)
+  }
 
   return (
     <>

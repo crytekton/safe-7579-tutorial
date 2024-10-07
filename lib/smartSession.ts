@@ -32,6 +32,7 @@ export const STORAGE_PASSKEY_LIST_KEY = 'safe_passkey_list'
 
 const privateKeySession = generatePrivateKey()
 const sessionAccount = privateKeyToAccount(privateKeySession)
+console.log('Session key address:',sessionAccount.address)
 const usdtAddress = "0xbDeaD2A70Fe794D2f97b37EFDE497e68974a296d" as Address
 const mintSelector = '0x1249c58b' as Hex
 const transferSelector = '0xa9059cbb' as Hex
