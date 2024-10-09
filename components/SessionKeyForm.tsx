@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 
 import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { install7579SessionModule, passkeySign, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
+import { createSession, install7579SessionModule, passkeySign, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
+import { isEthereumWallet } from '@dynamic-labs/ethereum'
+import { Wallet, useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
@@ -10,7 +12,10 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   const [txHash, setTxHash] = useState('' as `0x${string}`)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+  const [provider, setProvider] = useState<Wallet | null>()
   const [is7579Installed, setIs7579Installed] = useState(false)
+  const { primaryWallet } = useDynamicContext()
+  const isLoggedIn = useIsLoggedIn()
 
   useEffect(() => {
     const init7579Module = async () => {
@@ -27,6 +32,15 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
     }
     void init7579Module()
   }, [safe])
+
+  useEffect(() => {
+    const init = async () => {
+      if (isLoggedIn && primaryWallet && isEthereumWallet(primaryWallet)) {
+        setProvider(primaryWallet)
+      }
+    }
+    init()
+  }, [isLoggedIn, primaryWallet])
 
   return (
     <>
@@ -114,9 +128,9 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             setLoading(true)
             setError(false)
 
-            passkeySign(safe)
+            createSession(safe, provider!)
               .then(txHash => {
-                setTxHash(txHash)
+                setTxHash(txHash!)
                 setLoading(false)
               })
               .catch(err => {

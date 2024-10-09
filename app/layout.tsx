@@ -46,23 +46,6 @@ export default function RootLayout({
             </a>
             <div style={{ display: 'flex' }}>
             <DynamicWidget />
-              <a
-                href='https://docs.safe.global/advanced/erc-7579/tutorials/7579-tutorial'
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: '1rem'
-                }}
-              >
-                Read tutorial <ExternalLink style={{ marginLeft: '0.5rem' }} />
-              </a>
-              <a
-                href='https://github.com/5afe/safe-tutorial-7579'
-                style={{ display: 'flex', alignItems: 'center' }}
-              >
-                View on GitHub{' '}
-                <Github width={24} height={24} style={{ marginLeft: '0.5rem' }} />
-              </a>
             </div>
           </nav>
           <div style={{ width: '100%', textAlign: 'center' }}>

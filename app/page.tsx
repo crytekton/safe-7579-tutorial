@@ -22,6 +22,7 @@ export default function Home() {
 
   useEffect(() => {
     const init = async () => {
+      console.log(isLoggedIn)
       if (isLoggedIn && primaryWallet && isEthereumWallet(primaryWallet)) {
         setProvider(await primaryWallet.getWalletClient())
       }
@@ -38,7 +39,7 @@ export default function Home() {
     setSafe(safe)
   }
 
-  return (
+  return !isLoggedIn ? null : (
     <>
       {safe == null ? (
         <>
