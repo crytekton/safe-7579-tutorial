@@ -1,6 +1,8 @@
 import {
   ChainSession,
+  MOCK_ATTESTER_ADDRESS,
   OWNABLE_VALIDATOR_ADDRESS,
+  RHINESTONE_ATTESTER_ADDRESS,
   SMART_SESSIONS_ADDRESS,
   Session,
   SmartSessionMode,
@@ -103,15 +105,19 @@ export const install7579SessionModule = async (
     hook: zeroAddress
   });
 
-  const attesterModule = getTrustAttestersAction({
-    attesters: ["0xA4C777199658a41688E9488c4EcbD7a2925Cc23A"], threshold: 1
-  })
+  const trustAttestersAction = getTrustAttestersAction({
+    threshold: 1,
+    attesters: [
+      RHINESTONE_ATTESTER_ADDRESS, // Rhinestone Attester
+      MOCK_ATTESTER_ADDRESS, // Mock Attester - do not use in production
+    ],
+  });
 
   const userOpHash = await safe.sendUserOperation({
     calls: [
       {
-        to: attesterModule.target,
-        data: attesterModule.callData
+        to: trustAttestersAction.target,
+        data: trustAttestersAction.callData
       },
       {
         to: safe.account.address,
@@ -458,7 +464,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
     ],
     nonce,
     signature: encodeSmartSessionSignature({
-      mode: SmartSessionMode.ENABLE,
+      mode: SmartSessionMode.UNSAFE_ENABLE,
       permissionId,
       signature: getOwnableValidatorMockSignature({ threshold: 1 }),
       enableSessionData: {
@@ -472,9 +478,9 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
         accountType: "safe",
       },
     }),
-    callGasLimit: 30000000n,
-    preVerificationGas: 3000000n,
-    verificationGasLimit: 3000000n
+    callGasLimit: 3000000000n,
+    preVerificationGas: 30000000n,
+    verificationGasLimit: 30000000n
   })
 
   console.log('fail')
