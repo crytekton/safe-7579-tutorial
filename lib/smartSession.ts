@@ -14,6 +14,7 @@ import {
   getSessionDigest,
   getSessionNonce,
   getSmartSessionsValidator,
+  getSpendingLimitsPolicy,
   getSudoPolicy,
   getTrustAttestersAction,
   getWebauthnValidatorMockSignature,
@@ -26,7 +27,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { abi } from './abi';
 import { sendUserOp } from './sendUserOp';
 import { createBundlerClient, entryPoint07Address, getUserOperationHash } from 'viem/account-abstraction';
-import { sepolia } from 'viem/chains';
+import { baseSepolia } from 'viem/chains';
 import { getAccountNonce } from 'permissionless/actions';
 import { Wallet } from '@dynamic-labs/sdk-react-core';
 import { isEthereumWallet } from '@dynamic-labs/ethereum';
@@ -36,7 +37,7 @@ export const STORAGE_PASSKEY_LIST_KEY = 'safe_passkey_list'
 const privateKeySession = process.env.NEXT_PUBLIC_PRIVATE_KEY as Hex
 const sessionAccount = privateKeyToAccount(privateKeySession)
 console.log('Session key address:', sessionAccount.address)
-const usdtAddress = "0xbDeaD2A70Fe794D2f97b37EFDE497e68974a296d" as Address
+const usdtAddress = "0xc8B3c1D8ccDfcACF4886ac1B4d5289A933f33402" as Address
 const mintSelector = '0x1249c58b' as Hex
 const transferSelector = '0xa9059cbb' as Hex
 
@@ -57,6 +58,20 @@ const actionTransfer = {
     {
       policy: getSudoPolicy().address,
       initData: getSudoPolicy().initData,
+    },
+  ],
+}
+const spendingLimitsPolicy = getSpendingLimitsPolicy([{
+  token: '0xc8B3c1D8ccDfcACF4886ac1B4d5289A933f33402',
+  limit: 10000000000000000000n
+}])
+const actionTransferWithLimit = {
+  actionTarget: usdtAddress,
+  actionTargetSelector: transferSelector,
+  actionPolicies: [
+    {
+      policy: spendingLimitsPolicy.address,
+      initData: spendingLimitsPolicy.initData,
     },
   ],
 }
@@ -84,7 +99,8 @@ const session = {
   },
   actions: [
     actionMint,
-    actionTransfer
+    actionTransfer,
+    actionTransferWithLimit
   ],
 } as Session
 
@@ -188,7 +204,6 @@ export const install7579SessionModule = async (
       //     })
       // }
     ],
-    callGasLimit: 2000000n
   })
 
   const receipt = await safe.waitForUserOperationReceipt({ hash: userOpHash, timeout: 1000000000 })
@@ -245,7 +260,7 @@ export const sessionKeyMint = async (safe: SafeSmartAccountClient) => {
     paymaster: true,
     client: publicClient,
     transport: http(pimlicoUrl),
-    chain: sepolia
+    chain: baseSepolia
   })
 
   const receipt = await bundlerClient.waitForUserOperationReceipt({ hash: ophash, timeout: 1000000000 })
@@ -253,7 +268,8 @@ export const sessionKeyMint = async (safe: SafeSmartAccountClient) => {
   return receipt.receipt.transactionHash
 }
 
-export const sessionKeyTransfer = async (safe: SafeSmartAccountClient) => {
+export const sessionKeyTransfer = async (safe: SafeSmartAccountClient, to: Hex, value: bigint) => {
+  console.log(value)
   const permissionId = (await getPermissionId({
     client: publicClient,
     session: session,
@@ -262,13 +278,13 @@ export const sessionKeyTransfer = async (safe: SafeSmartAccountClient) => {
   const callData = encodeFunctionData({
     abi: erc20Abi,
     functionName: 'transfer',
-    args: ["0xc486030887BB2EF7eA20C2e2BbB46097a275436B", 10n]
+    args: [to, value]
   })
   const ophash = await sendUserOp({
     account: safe.account,
     actions: [
       {
-        target: actionMint.actionTarget,
+        target: actionTransfer.actionTarget,
         value: BigInt(0),
         callData: callData,
       },
@@ -307,7 +323,69 @@ export const sessionKeyTransfer = async (safe: SafeSmartAccountClient) => {
     paymaster: true,
     client: publicClient,
     transport: http(pimlicoUrl),
-    chain: sepolia
+    chain: baseSepolia
+  })
+
+  const receipt = await bundlerClient.waitForUserOperationReceipt({ hash: ophash, timeout: 1000000000 })
+
+  return receipt.receipt.transactionHash
+}
+
+export const sessionKeyTransferLimit = async (safe: SafeSmartAccountClient, to: Hex, value: bigint) => {
+  const permissionId = (await getPermissionId({
+    client: publicClient,
+    session: session,
+  })) as Hex
+
+  const callData = encodeFunctionData({
+    abi: erc20Abi,
+    functionName: 'transfer',
+    args: [to, value]
+  })
+  const ophash = await sendUserOp({
+    account: safe.account,
+    actions: [
+      {
+        target: actionTransferWithLimit.actionTarget,
+        value: BigInt(0),
+        callData: callData,
+      },
+    ],
+    key: BigInt(
+      pad(SMART_SESSIONS_ADDRESS, {
+        dir: 'right',
+        size: 24,
+      }),
+    ),
+    signUserOpHash: async (userOpHash) => {
+      const signer = privateKeyToAccount(privateKeySession)
+
+      const signature = await signer.signMessage({
+        message: { raw: userOpHash },
+      })
+
+      return encodeSmartSessionSignature({
+        mode: SmartSessionMode.USE,
+        permissionId,
+        signature,
+      })
+    },
+    getDummySignature: async () => {
+      return encodeSmartSessionSignature({
+        mode: SmartSessionMode.USE,
+        permissionId,
+        signature: getOwnableValidatorMockSignature({
+          threshold: 1,
+        }),
+      })
+    },
+  })
+
+  const bundlerClient = createBundlerClient({
+    paymaster: true,
+    client: publicClient,
+    transport: http(pimlicoUrl),
+    chain: baseSepolia
   })
 
   const receipt = await bundlerClient.waitForUserOperationReceipt({ hash: ophash, timeout: 1000000000 })
@@ -325,7 +403,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
   }
 
   const walletOwner = createWalletClient({
-    chain: sepolia,
+    chain: baseSepolia,
     transport: custom(provider?.transport!)
   })
   const newSession: Session = {
@@ -365,7 +443,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
     ],
   }
   const publicClient = getClient({
-    rpcUrl: "https://sepolia.drpc.org", // or your own rpc url
+    rpcUrl: "https://sepolia.base.org", // or your own rpc url
   });
 
   const account = await getAccount({
@@ -394,14 +472,14 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
 
   const chainDigests = [
     {
-      chainId: BigInt(sepolia.id), // or your current chain
+      chainId: BigInt(baseSepolia.id), // or your current chain
       sessionDigest,
     },
   ];
 
   const chainSessions: ChainSession[] = [
     {
-      chainId: BigInt(sepolia.id),
+      chainId: BigInt(baseSepolia.id),
       session: {
         ...session,
         account: account.address,
@@ -422,7 +500,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
     paymaster: true,
     client: publicClient,
     transport: http(pimlicoUrl),
-    chain: sepolia
+    chain: baseSepolia
   })
 
   const nonce = await getAccountNonce(publicClient, {
@@ -464,7 +542,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
     ],
     nonce,
     signature: encodeSmartSessionSignature({
-      mode: SmartSessionMode.UNSAFE_ENABLE,
+      mode: SmartSessionMode.ENABLE,
       permissionId,
       signature: getOwnableValidatorMockSignature({ threshold: 1 }),
       enableSessionData: {
@@ -487,13 +565,29 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
 
   const userOpHashToSign = getUserOperationHash({
     userOperation,
-    chainId: sepolia.id,
+    chainId: baseSepolia.id,
     entryPointVersion: '0.7',
     entryPointAddress: entryPoint07Address
   });
 
-  userOperation.signature = await sessionAccount.signMessage({
+  const signature = await sessionAccount.signMessage({
     message: { raw: userOpHashToSign },
+  });
+
+  userOperation.signature = encodeSmartSessionSignature({
+    mode: SmartSessionMode.ENABLE,
+    permissionId,
+    signature: signature,
+    enableSessionData: {
+      enableSession: {
+        chainDigestIndex: 0,
+        hashesAndChainIds: chainDigests,
+        sessionToEnable: session,
+        permissionEnableSig,
+      },
+      validator: OWNABLE_VALIDATOR_ADDRESS,
+      accountType: "safe",
+    },
   });
 
   console.log('hello 2')

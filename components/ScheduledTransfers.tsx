@@ -38,7 +38,7 @@ export default function ScheduledTransfers ({
                     <a
                       target='_blank'
                       rel='noreferrer'
-                      href={`https://sepolia.etherscan.io/tx/${transfer.transactionHash}`}
+                      href={`https://base-sepolia.blockscout.com/tx/${transfer.transactionHash}`}
                     >
                       {transfer.transactionHash.substring(0, 6)}...
                       <Image

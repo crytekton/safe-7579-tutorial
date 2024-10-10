@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 
 import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { createSession, install7579SessionModule, passkeySign, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
+import { createSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer, sessionKeyTransferLimit } from '@/lib/smartSession'
 import { isEthereumWallet } from '@dynamic-labs/ethereum'
 import { Wallet, useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core'
+import { Hex } from 'viem'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
@@ -14,6 +15,8 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   const [error, setError] = useState(false)
   const [provider, setProvider] = useState<Wallet | null>()
   const [is7579Installed, setIs7579Installed] = useState(false)
+  const [to, setTo] = useState('')
+  const [value, setValue] = useState(0)
   const { primaryWallet } = useDynamicContext()
   const isLoggedIn = useIsLoggedIn()
 
@@ -51,16 +54,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           ? 'Yes ✅'
           : 'No, Click to create a session key'}{' '}
       </div>
-      <div
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginTop: '40px',
-          marginBottom: '40px'
-        }}
-      >
+      <div>
         <button
           disabled={loading || is7579Installed}
           onClick={async () => {
@@ -82,6 +76,31 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
         >
           Setup the session
         </button>
+      </div>
+      <div>
+        <button
+          disabled={loading || !is7579Installed}
+          onClick={async () => {
+            setLoading(true)
+            setError(false)
+
+            createSession(safe, provider!)
+              .then(txHash => {
+                setTxHash(txHash)
+                setLoading(false)
+                setIs7579Installed(true)
+              })
+              .catch(err => {
+                console.error(err)
+                setLoading(false)
+                setError(true)
+              })
+          }}
+        >
+          Create a new session
+        </button>
+      </div>
+      <div>
         <button
           disabled={loading || !is7579Installed}
           onClick={async () => {
@@ -102,16 +121,21 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
         >
           Mint USDT
         </button>
+      </div>
+      <div>
+        To: <input name='to' onChange={(e) => setTo(e.target.value)}></input>
+        Value: <input name='to' onChange={(e) => setValue(Number(e.target.value))}></input>
         <button
           disabled={loading || !is7579Installed}
           onClick={async () => {
             setLoading(true)
             setError(false)
-
-            sessionKeyTransfer(safe)
+            setTxHash('' as Hex)
+            sessionKeyTransfer(safe, to as Hex, BigInt(value*10**18))
               .then(txHash => {
                 setTxHash(txHash)
                 setLoading(false)
+                setError(false)
               })
               .catch(err => {
                 console.error(err)
@@ -120,8 +144,35 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
               })
           }}
         >
-          Transfer USDT
+          Transfer Token
         </button>
+        </div>
+        {/* <div>
+        To: <input name='to' onChange={(e) => setTo(e.target.value)}></input>
+        Value: <input name='to' onChange={(e) => setValue(Number(e.target.value))}></input>
+        <button
+          disabled={loading || !is7579Installed}
+          onClick={async () => {
+            setLoading(true)
+            setError(false)
+            setTxHash('' as Hex)
+            sessionKeyTransferLimit(safe, to as Hex, BigInt(value))
+              .then(txHash => {
+                setTxHash(txHash)
+                setLoading(false)
+                setError(false)
+              })
+              .catch(err => {
+                console.error(err)
+                setLoading(false)
+                setError(true)
+              })
+          }}
+        >
+          Transfer Token (Limited)
+        </button>
+        </div> */}
+        {/* <div>
         <button
           disabled={loading || !is7579Installed}
           onClick={async () => {
@@ -132,6 +183,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
               .then(txHash => {
                 setTxHash(txHash!)
                 setLoading(false)
+                setError(false)
               })
               .catch(err => {
                 console.error(err)
@@ -140,9 +192,9 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
               })
           }}
         >
-          Mint with passkey
+          Create new session
         </button>
-      </div>
+      </div> */}
       
       <div>
         {loading ? <p>Processing, please wait...</p> : null}
@@ -156,7 +208,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             <p>
               Success!{' '}
               <a
-                href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                href={`https://base-sepolia.blockscout.com/tx/${txHash}`}
                 target='_blank'
                 rel='noreferrer'
                 style={{

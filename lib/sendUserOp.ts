@@ -1,5 +1,5 @@
 import { Account, Address, Hex, http, pad } from 'viem'
-import { sepolia } from 'viem/chains'
+import { baseSepolia } from 'viem/chains'
 import { entryPoint07Address, getUserOperationHash } from 'viem/account-abstraction'
 import { pimlicoClient, pimlicoUrl, publicClient } from './permissionless'
 import { getAccountNonce } from 'permissionless/actions'
@@ -29,7 +29,7 @@ export const sendUserOp = async ({
 }: SendUserOpParams) => {
   const smartClient = createSmartAccountClient({
     account: account,
-    chain: sepolia,
+    chain: baseSepolia,
     bundlerTransport: http(pimlicoUrl),
     paymaster: pimlicoClient,
     userOperation: {
@@ -50,7 +50,7 @@ export const sendUserOp = async ({
     smartClient.account!.signUserOperation = async (userOp:any): Promise<Hex> => {
       const hash = getUserOperationHash({
         userOperation: userOp,
-        chainId: sepolia.id,
+        chainId: baseSepolia.id,
         entryPointVersion: "0.7",
         entryPointAddress: entryPoint07Address
     })

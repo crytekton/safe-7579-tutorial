@@ -133,7 +133,7 @@ const ScheduledTransferForm: React.FC<{ safe: any }> = ({
             <p>
               Success!{' '}
               <a
-                href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                href={`https://base-sepolia.blockscout.com/tx/${txHash}`}
                 target='_blank'
                 rel='noreferrer'
                 style={{
