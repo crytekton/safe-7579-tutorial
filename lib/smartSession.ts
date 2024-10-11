@@ -7,6 +7,7 @@ import {
   Session,
   SmartSessionMode,
   WEBAUTHN_VALIDATOR_ADDRESS,
+  encode1271Hash,
   encodeSmartSessionSignature,
   getAccount,
   getClient,
@@ -21,7 +22,7 @@ import {
   getWebauthnValidatorSignature,
   hashChainSessions
 } from '@rhinestone/module-sdk'
-import { Address, Hex, PublicClient, createWalletClient, custom, encodeAbiParameters, encodeFunctionData, erc20Abi, http, pad, parseSignature, toBytes, toHex, zeroAddress } from 'viem'
+import { Address,concat, Hex, PublicClient, createWalletClient, custom, encodeAbiParameters, encodeFunctionData, erc20Abi, fromHex, http, pad, parseSignature, slice, toBytes, toHex, zeroAddress } from 'viem'
 import { SafeSmartAccountClient, loadPasskeysFromLocalStorage, pimlicoUrl, publicClient, storePasskeyInLocalStorage } from './permissionless';
 import { privateKeyToAccount } from 'viem/accounts';
 import { abi } from './abi';
@@ -491,10 +492,21 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
   ];
 
   const permissionEnableHash = hashChainSessions(chainSessions);
+  const formattedHash = encode1271Hash({
+    account,
+    chainId: baseSepolia.id, // or other chain id
+    validator: account.address,
+    hash: permissionEnableHash,
+   })
   const permissionEnableSig = await walletOwner.signMessage({
     account: owner.address as Hex,
-    message: { raw: permissionEnableHash },
+    message: { raw: formattedHash },
   })
+  let formattedSignature = permissionEnableSig;
+  const v = fromHex(slice(permissionEnableSig, 64, 65), 'number')
+  if (v < 30) {
+  formattedSignature = concat([slice(permissionEnableSig, 0, 64), toHex(v + 4)])
+  }
 
   const bundlerClient = createBundlerClient({
     paymaster: true,
@@ -515,21 +527,6 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
   })
 
   console.log('hello')
-  console.log(encodeSmartSessionSignature({
-    mode: SmartSessionMode.ENABLE,
-    permissionId,
-    signature: getOwnableValidatorMockSignature({ threshold: 1 }),
-    enableSessionData: {
-      enableSession: {
-        chainDigestIndex: 0,
-        hashesAndChainIds: chainDigests,
-        sessionToEnable: session,
-        permissionEnableSig,
-      },
-      validator: OWNABLE_VALIDATOR_ADDRESS,
-      accountType: "safe",
-    },
-  }),)
 
   const userOperation = await safe.prepareUserOperation({
     account: safe.account,
@@ -550,7 +547,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
           chainDigestIndex: 0,
           hashesAndChainIds: chainDigests,
           sessionToEnable: session,
-          permissionEnableSig,
+          permissionEnableSig: formattedSignature,
         },
         validator: OWNABLE_VALIDATOR_ADDRESS,
         accountType: "safe",
@@ -583,7 +580,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
         chainDigestIndex: 0,
         hashesAndChainIds: chainDigests,
         sessionToEnable: session,
-        permissionEnableSig,
+        permissionEnableSig: formattedSignature,
       },
       validator: OWNABLE_VALIDATOR_ADDRESS,
       accountType: "safe",
