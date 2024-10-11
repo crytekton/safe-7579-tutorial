@@ -504,8 +504,9 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
   })
   let formattedSignature = permissionEnableSig;
   const v = fromHex(slice(permissionEnableSig, 64, 65), 'number')
+  console.log(v)
   if (v < 30) {
-  formattedSignature = concat([slice(permissionEnableSig, 0, 64), toHex(v + 4)])
+    formattedSignature = concat([slice(permissionEnableSig, 0, 64), toHex(v + 4)])
   }
 
   const bundlerClient = createBundlerClient({
@@ -525,8 +526,6 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
       }),
     ),
   })
-
-  console.log('hello')
 
   const userOperation = await safe.prepareUserOperation({
     account: safe.account,
@@ -558,7 +557,6 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
     verificationGasLimit: 30000000n
   })
 
-  console.log('fail')
 
   const userOpHashToSign = getUserOperationHash({
     userOperation,
@@ -587,7 +585,6 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
     },
   });
 
-  console.log('hello 2')
   const userOpTxHash = await safe.sendUserOperation(userOperation);
 
   const receipt = await bundlerClient.waitForUserOperationReceipt({ hash: userOpTxHash, timeout: 1000000000 })
