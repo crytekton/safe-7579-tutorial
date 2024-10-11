@@ -482,7 +482,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
     {
       chainId: BigInt(baseSepolia.id),
       session: {
-        ...session,
+        ...newSession,
         account: account.address,
         smartSession: SMART_SESSIONS_ADDRESS,
         mode: 1,
@@ -490,14 +490,15 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
       },
     },
   ];
-
   const permissionEnableHash = hashChainSessions(chainSessions);
+  console.log(permissionEnableHash)
   const formattedHash = encode1271Hash({
     account,
     chainId: baseSepolia.id, // or other chain id
     validator: account.address,
     hash: permissionEnableHash,
-   })
+  })
+  console.log(formattedHash)
   const permissionEnableSig = await walletOwner.signMessage({
     account: owner.address as Hex,
     message: { raw: formattedHash },
@@ -508,6 +509,8 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
   if (v < 30) {
     formattedSignature = concat([slice(permissionEnableSig, 0, 64), toHex(v + 4)])
   }
+
+  console.log(formattedSignature)
 
   const bundlerClient = createBundlerClient({
     paymaster: true,
@@ -545,7 +548,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
         enableSession: {
           chainDigestIndex: 0,
           hashesAndChainIds: chainDigests,
-          sessionToEnable: session,
+          sessionToEnable: newSession,
           permissionEnableSig: formattedSignature,
         },
         validator: OWNABLE_VALIDATOR_ADDRESS,
@@ -577,7 +580,7 @@ export const createSession = async (safe: SafeSmartAccountClient, owner: Wallet)
       enableSession: {
         chainDigestIndex: 0,
         hashesAndChainIds: chainDigests,
-        sessionToEnable: session,
+        sessionToEnable: newSession,
         permissionEnableSig: formattedSignature,
       },
       validator: OWNABLE_VALIDATOR_ADDRESS,
@@ -607,86 +610,86 @@ export const getPermissionId = async ({
   })) as string
 }
 
-export const passkeySign = async (safe: SafeSmartAccountClient) => {
+// export const passkeySign = async (safe: SafeSmartAccountClient) => {
 
-  const passkeys = loadPasskeysFromLocalStorage()
+//   const passkeys = loadPasskeysFromLocalStorage()
 
-  const ophash = await sendUserOp({
-    account: safe.account,
-    actions: [
-      {
-        target: actionMint.actionTarget,
-        value: BigInt(0),
-        callData: actionMint.actionTargetSelector,
-      },
-    ],
-    key: BigInt(
-      pad(WEBAUTHN_VALIDATOR_ADDRESS, {
-        dir: 'right',
-        size: 24,
-      }),
-    ),
-    signUserOpHash: async (userOpHash) => {
+//   const ophash = await sendUserOp({
+//     account: safe.account,
+//     actions: [
+//       {
+//         target: actionMint.actionTarget,
+//         value: BigInt(0),
+//         callData: actionMint.actionTargetSelector,
+//       },
+//     ],
+//     key: BigInt(
+//       pad(WEBAUTHN_VALIDATOR_ADDRESS, {
+//         dir: 'right',
+//         size: 24,
+//       }),
+//     ),
+//     signUserOpHash: async (userOpHash) => {
 
-      const options: PublicKeyCredentialRequestOptions = {
-        timeout: 60000,
-        challenge: userOpHash
-          ? Buffer.from(userOpHash.slice(2), "hex")
-          : Uint8Array.from("random-challenge", (c) => c.charCodeAt(0)),
-        rpId: window.location.hostname,
-        userVerification: "preferred",
-      } as PublicKeyCredentialRequestOptions;
+//       const options: PublicKeyCredentialRequestOptions = {
+//         timeout: 60000,
+//         challenge: userOpHash
+//           ? Buffer.from(userOpHash.slice(2), "hex")
+//           : Uint8Array.from("random-challenge", (c) => c.charCodeAt(0)),
+//         rpId: window.location.hostname,
+//         userVerification: "preferred",
+//       } as PublicKeyCredentialRequestOptions;
 
-      const credential = await navigator.credentials.get({
-        publicKey: options
-      })
+//       const credential = await navigator.credentials.get({
+//         publicKey: options
+//       })
 
-      let cred = credential as unknown as {
-        rawId: ArrayBuffer;
-        response: {
-          clientDataJSON: ArrayBuffer;
-          authenticatorData: ArrayBuffer;
-          signature: ArrayBuffer;
-          userHandle: ArrayBuffer;
-        };
-      };
-      const utf8Decoder = new TextDecoder("utf-8");
+//       let cred = credential as unknown as {
+//         rawId: ArrayBuffer;
+//         response: {
+//           clientDataJSON: ArrayBuffer;
+//           authenticatorData: ArrayBuffer;
+//           signature: ArrayBuffer;
+//           userHandle: ArrayBuffer;
+//         };
+//       };
+//       const utf8Decoder = new TextDecoder("utf-8");
 
-      const decodedClientData = utf8Decoder.decode(cred.response.clientDataJSON);
-      const clientDataObj = JSON.parse(decodedClientData);
+//       const decodedClientData = utf8Decoder.decode(cred.response.clientDataJSON);
+//       const clientDataObj = JSON.parse(decodedClientData);
 
-      let authenticatorData = toHex(new Uint8Array(cred.response.authenticatorData));
-      let signature = parseSignature(toHex(new Uint8Array(cred?.response?.signature)));
+//       let authenticatorData = toHex(new Uint8Array(cred.response.authenticatorData));
+//       let signature = parseSignature(toHex(new Uint8Array(cred?.response?.signature)));
 
-      return await getWebauthnValidatorSignature({
-        authenticatorData: authenticatorData,
-        clientDataJSON: JSON.stringify({
-          type: clientDataObj.type,
-          challenge: clientDataObj.challenge,
-          origin: clientDataObj.origin,
-          crossOrigin: clientDataObj.crossOrigin,
-        }),
-        responseTypeLocation: 1,
-        r: Number(signature.r),
-        s: Number(signature.s),
-        usePrecompiled: true
-      })
-    },
-    getDummySignature: async () => {
-      return getWebauthnValidatorMockSignature()
-    }
-  })
+//       return await getWebauthnValidatorSignature({
+//         authenticatorData: authenticatorData,
+//         clientDataJSON: JSON.stringify({
+//           type: clientDataObj.type,
+//           challenge: clientDataObj.challenge,
+//           origin: clientDataObj.origin,
+//           crossOrigin: clientDataObj.crossOrigin,
+//         }),
+//         responseTypeLocation: 1,
+//         r: Number(signature.r),
+//         s: Number(signature.s),
+//         usePrecompiled: true
+//       })
+//     },
+//     getDummySignature: async () => {
+//       return getWebauthnValidatorMockSignature()
+//     }
+//   })
 
-  const receipt = await safe.waitForUserOperationReceipt({ hash: ophash, timeout: 1000000000 })
+//   const receipt = await safe.waitForUserOperationReceipt({ hash: ophash, timeout: 1000000000 })
 
-  return receipt.receipt.transactionHash
-  // const userOp = {
-  //     to
-  // }
-  // const hash = getUserOperationHash({
-  //     userOperation: userOp,
-  //     chainId: sepolia.id,
-  //     entryPointVersion: "0.7",
-  //     entryPointAddress: entryPoint07Address
-  // })
-}
+//   return receipt.receipt.transactionHash
+//   // const userOp = {
+//   //     to
+//   // }
+//   // const hash = getUserOperationHash({
+//   //     userOperation: userOp,
+//   //     chainId: sepolia.id,
+//   //     entryPointVersion: "0.7",
+//   //     entryPointAddress: entryPoint07Address
+//   // })
+// }
