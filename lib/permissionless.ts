@@ -10,6 +10,7 @@ import {
 import { entryPoint07Address } from "viem/account-abstraction"
 import { PasskeyArgType, extractPasskeyData } from '@safe-global/protocol-kit'
 import { randomBytes } from 'crypto'
+import { MOCK_ATTESTER_ADDRESS, RHINESTONE_ATTESTER_ADDRESS } from '@rhinestone/module-sdk'
 
 export enum OperationType {
   Call, // 0
@@ -142,6 +143,11 @@ export const getSmartAccountClient = async (signer: any) => {
     }, // global entrypoint
     nonceKey: bytesToBigInt(randomBytes(4)),
     saltNonce: bytesToBigInt(randomBytes(4)),
+    attesters: [
+      RHINESTONE_ATTESTER_ADDRESS, // Rhinestone Attester
+      MOCK_ATTESTER_ADDRESS, // Mock Attester - do not use in production
+    ],
+    attestersThreshold: 1,
     version: "1.4.1",
   })
 
