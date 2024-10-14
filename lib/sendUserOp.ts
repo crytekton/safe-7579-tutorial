@@ -1,9 +1,8 @@
 import { Account, Address, Hex, http, pad } from 'viem'
-import { baseSepolia } from 'viem/chains'
+import { sepolia } from 'viem/chains'
 import { entryPoint07Address, getUserOperationHash } from 'viem/account-abstraction'
 import { pimlicoClient, pimlicoUrl, publicClient } from './permissionless'
 import { getAccountNonce } from 'permissionless/actions'
-import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
 import { createSmartAccountClient } from 'permissionless'
 import { erc7579Actions } from 'permissionless/actions/erc7579'
 
@@ -27,9 +26,10 @@ export const sendUserOp = async ({
   getDummySignature,
   key
 }: SendUserOpParams) => {
+  const accountCopy = {...account}
   const smartClient = createSmartAccountClient({
-    account: account,
-    chain: baseSepolia,
+    account: accountCopy,
+    chain: sepolia,
     bundlerTransport: http(pimlicoUrl),
     paymaster: pimlicoClient,
     userOperation: {
@@ -44,13 +44,15 @@ export const sendUserOp = async ({
     address: account.address,
     entryPointAddress: entryPoint07Address,
     key
-})
+  })
+  const signUserOpOriginal = smartClient.account!.signUserOperation
+  const getStubOriginal = smartClient.account!.getStubSignature
 
   if (signUserOpHash) {
     smartClient.account!.signUserOperation = async (userOp:any): Promise<Hex> => {
       const hash = getUserOperationHash({
         userOperation: userOp,
-        chainId: baseSepolia.id,
+        chainId: sepolia.id,
         entryPointVersion: "0.7",
         entryPointAddress: entryPoint07Address
     })
@@ -74,6 +76,7 @@ export const sendUserOp = async ({
     })),
     nonce,
   })
-
+  smartClient.account!.signUserOperation = signUserOpOriginal
+  smartClient.account!.getStubSignature = getStubOriginal
   return hash
 }

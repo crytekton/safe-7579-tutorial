@@ -1,7 +1,7 @@
 import { Chain, Client, Hex, HttpTransport, bytesToBigInt, bytesToHex, createPublicClient, createWalletClient, custom, encodePacked, http, toBytes } from 'viem'
 import { generatePrivateKey, privateKeyToAccount, toAccount } from 'viem/accounts'
 import { SmartAccountClient, createSmartAccountClient } from "permissionless"
-import { baseSepolia } from 'viem/chains'
+import { sepolia } from 'viem/chains'
 import { Erc7579Actions, erc7579Actions } from 'permissionless/actions/erc7579'
 import { ToSafeSmartAccountReturnType, toSafeSmartAccount, toSimpleSmartAccount } from "permissionless/accounts"
 import {
@@ -26,8 +26,8 @@ export interface MetaTransactionData {
 export const STORAGE_PASSKEY_LIST_KEY = 'safe_passkey_list'
 export type SafeSmartAccountClient = SmartAccountClient<HttpTransport, Chain, ToSafeSmartAccountReturnType<'0.7'>> & Erc7579Actions<ToSafeSmartAccountReturnType<'0.7'>>
 
-const rpc_url = 'https://sepolia.base.org'
-export const pimlicoUrl = `https://api.pimlico.io/v2/84532/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`
+const rpc_url = 'https://ethereum-sepolia-rpc.publicnode.com'
+export const pimlicoUrl = `https://api.pimlico.io/v2/sepolia/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`
 export const safe4337ModuleAddress = '0x3Fdb5BC686e861480ef99A6E3FaAe03c0b9F32e2'
 export const erc7579LaunchpadAddress = '0xEBe001b3D534B9B6E2500FB78E67a1A137f561CE'
 export const PAYMASTER_ADDRESS = '0x0000000000325602a77416A16136FDafd04b299f' // SEPOLIA
@@ -42,7 +42,7 @@ const privateKey =
   })() as Hex
 
 export const publicClient = createPublicClient({
-  chain: baseSepolia,
+  chain: sepolia,
   transport: http(rpc_url),
 })
 
@@ -149,7 +149,7 @@ export const getSmartAccountClient = async (signer: any) => {
 
   const smartAccountClient = createSmartAccountClient({
     account: safeAccount,
-    chain: baseSepolia,
+    chain: sepolia,
     bundlerTransport: http(pimlicoUrl),
     paymaster: pimlicoClient,
     userOperation: {

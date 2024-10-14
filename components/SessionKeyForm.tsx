@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react'
 
-import { SMART_SESSIONS_ADDRESS } from '@rhinestone/module-sdk'
+import { ActionData, SMART_SESSIONS_ADDRESS, Session } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { createSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer, sessionKeyTransferLimit } from '@/lib/smartSession'
-import { isEthereumWallet } from '@dynamic-labs/ethereum'
-import { Wallet, useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core'
+import { createSession, defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
 import { Hex } from 'viem'
+import ActionTable from './actionTable'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
 }) => {
   const [txHash, setTxHash] = useState('' as `0x${string}`)
   const [loading, setLoading] = useState(false)
+  const [session, setSession] = useState<Session>(defaultSession)
   const [error, setError] = useState(false)
-  const [provider, setProvider] = useState<Wallet | null>()
   const [is7579Installed, setIs7579Installed] = useState(false)
   const [to, setTo] = useState('')
   const [value, setValue] = useState(0)
-  const { primaryWallet } = useDynamicContext()
-  const isLoggedIn = useIsLoggedIn()
 
   useEffect(() => {
     const init7579Module = async () => {
@@ -33,17 +30,13 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
         setIs7579Installed(true)
       }
     }
+
     void init7579Module()
   }, [safe])
 
-  useEffect(() => {
-    const init = async () => {
-      if (isLoggedIn && primaryWallet && isEthereumWallet(primaryWallet)) {
-        setProvider(primaryWallet)
-      }
-    }
-    init()
-  }, [isLoggedIn, primaryWallet])
+  const handleActionsUpdate = (updatedActions: ActionData[]) => {
+    setSession({...session, actions: updatedActions}); // Update the parent state
+  };
 
   return (
     <>
@@ -54,14 +47,15 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           ? 'Yes ✅'
           : 'No, Click to create a session key'}{' '}
       </div>
+      <ActionTable actions={session!.actions} onActionsChange={handleActionsUpdate}/>
       <div>
-        <button
+       { is7579Installed ? null : <button
           disabled={loading || is7579Installed}
           onClick={async () => {
             setLoading(true)
             setError(false)
 
-            install7579SessionModule(safe)
+            install7579SessionModule(safe, session)
               .then(txHash => {
                 setTxHash(txHash)
                 setLoading(false)
@@ -75,17 +69,17 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           }}
         >
           Setup the session
-        </button>
+        </button>}
       </div>
       <div>
         <button
-          disabled={loading || !is7579Installed}
+          disabled={loading || !is7579Installed || !session}
           onClick={async () => {
             setLoading(true)
             setError(false)
 
-            createSession(safe, provider!)
-              .then(txHash => {
+            createSession(safe, session!)
+              .then((txHash) => {
                 setTxHash(txHash)
                 setLoading(false)
                 setIs7579Installed(true)
@@ -107,7 +101,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             setLoading(true)
             setError(false)
 
-            sessionKeyMint(safe)
+            sessionKeyMint(safe, session!)
               .then(txHash => {
                 setTxHash(txHash)
                 setLoading(false)
@@ -131,7 +125,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             setLoading(true)
             setError(false)
             setTxHash('' as Hex)
-            sessionKeyTransfer(safe, to as Hex, BigInt(value*10**18))
+            sessionKeyTransfer(safe, to as Hex, BigInt(value * 10 ** 18), session!)
               .then(txHash => {
                 setTxHash(txHash)
                 setLoading(false)
@@ -146,56 +140,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
         >
           Transfer Token
         </button>
-        </div>
-        {/* <div>
-        To: <input name='to' onChange={(e) => setTo(e.target.value)}></input>
-        Value: <input name='to' onChange={(e) => setValue(Number(e.target.value))}></input>
-        <button
-          disabled={loading || !is7579Installed}
-          onClick={async () => {
-            setLoading(true)
-            setError(false)
-            setTxHash('' as Hex)
-            sessionKeyTransferLimit(safe, to as Hex, BigInt(value))
-              .then(txHash => {
-                setTxHash(txHash)
-                setLoading(false)
-                setError(false)
-              })
-              .catch(err => {
-                console.error(err)
-                setLoading(false)
-                setError(true)
-              })
-          }}
-        >
-          Transfer Token (Limited)
-        </button>
-        </div> */}
-        {/* <div>
-        <button
-          disabled={loading || !is7579Installed}
-          onClick={async () => {
-            setLoading(true)
-            setError(false)
-
-            createSession(safe, provider!)
-              .then(txHash => {
-                setTxHash(txHash!)
-                setLoading(false)
-                setError(false)
-              })
-              .catch(err => {
-                console.error(err)
-                setLoading(false)
-                setError(true)
-              })
-          }}
-        >
-          Create new session
-        </button>
-      </div> */}
-      
+      </div>
       <div>
         {loading ? <p>Processing, please wait...</p> : null}
         {error ? (
