@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { ActionData, SMART_SESSIONS_ADDRESS, Session } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { createSession, defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer } from '@/lib/smartSession'
+import { createSession, defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer, updateSession } from '@/lib/smartSession'
 import { Hex } from 'viem'
 import ActionTable from './actionTable'
 
@@ -78,7 +78,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             setLoading(true)
             setError(false)
 
-            createSession(safe, session!)
+            updateSession(safe, session!)
               .then((txHash) => {
                 setTxHash(txHash)
                 setLoading(false)

@@ -8,6 +8,7 @@ import {
   encodeSmartSessionSignature,
   getEnableSessionsAction,
   getOwnableValidatorMockSignature,
+  getRemoveSessionAction,
   getSmartSessionsValidator,
   getSpendingLimitsPolicy,
   getSudoPolicy,
@@ -308,7 +309,13 @@ export const sessionKeyTransfer = async (safe: SafeSmartAccountClient, to: Hex, 
   return receipt.receipt.transactionHash
 }
 
-export const createSession = async (safe: SafeSmartAccountClient, session: Session) => {
+export const updateSession = async (safe: SafeSmartAccountClient, session: Session) => {
+  const removeAction = getRemoveSessionAction({
+    permissionId: (await getPermissionId({
+      client: publicClient,
+      session,
+    })) as Hex
+  })
   const enableAction = getEnableSessionsAction({
     sessions: [session]
   })
@@ -319,11 +326,7 @@ export const createSession = async (safe: SafeSmartAccountClient, session: Sessi
     chain: sepolia
   })
   const userOpHash = await safe.sendUserOperation({
-    calls:[{
-      to: enableAction.to,
-      value: 0n,
-      data: enableAction.data
-    }]
+    calls:[removeAction, enableAction]
   })
   const receipt = await bundlerClient.waitForUserOperationReceipt({ hash: userOpHash})
   return receipt.receipt.transactionHash
