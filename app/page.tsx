@@ -21,12 +21,12 @@ export default function Home() {
   const [provider, setProvider] = useState<Client | null>()
   const [balance, setBalance] = useState('0')
   const [balanceERC20, setBalanceERC20] = useState('0')
+  const [nonce, setNonce] = useState(0n)
   const { primaryWallet } = useDynamicContext()
   const isLoggedIn = useIsLoggedIn()
 
   useEffect(() => {
     const init = async () => {
-      console.log(isLoggedIn)
       if (isLoggedIn && primaryWallet && isEthereumWallet(primaryWallet)) {
         setProvider(await primaryWallet.getWalletClient())
       }
@@ -34,26 +34,28 @@ export default function Home() {
     init()
   }, [isLoggedIn, primaryWallet])
 
+  const handleInputChange = (event: { target: { value: string } }) => {
+    setNonce(BigInt(event.target.value));
+  };
   const handleLoadSafe = async () => {
     if (!provider) {
       return
     }
-    console.log(provider)
-    const safe = await getSmartAccountClient(provider)
+    const { safe, nonce: new_nonce } = await getSmartAccountClient(provider, nonce)
     setSafe(safe)
+    setNonce(new_nonce)
+    console.log(nonce)
     const unwatch = publicClient.watchBlocks(
       {
         onBlock: async () => {
           const balance = await publicClient.getBalance({ address: safe.account.address as Hex })
           setBalance(formatEther(balance))
-          console.log(balance)
           const erc20Balance = await publicClient.readContract({
             address: usdtAddress,
             abi: erc20Abi,
             functionName: 'balanceOf',
             args: [safe.account.address]
           })
-          console.log(erc20Balance)
           setBalanceERC20(formatEther(erc20Balance))
         }
       }
@@ -64,15 +66,37 @@ export default function Home() {
     <>
       {safe == null ? (
         <>
+          <div>
+            <button onClick={handleLoadSafe} style={{ margin: '5px' }}>
+              Create Safe
+            </button>
+          </div>
 
-          <button onClick={handleLoadSafe} style={{ marginTop: '40px' }}>
-            Create Safe
-          </button>
+          <div>
+            <input
+              type="text"
+              value={nonce.toString()}
+              onChange={handleInputChange}
+              placeholder="Enter value"
+              style={{ margin: '5px' }}
+            />
+            <button onClick={handleLoadSafe} style={{ margin: '5px' }}>
+              Load Safe
+            </button>
+          </div>
+
         </>
       ) : (
         <>
-          Current balance: { balance } ETH
-          Current balance: { balanceERC20 } USD
+          <div>
+            Current balance: {balance} ETH
+          </div>
+          <div>
+            Current balance: {balanceERC20} USD
+          </div>
+          <div>
+            Safe nonce {nonce.toString()}
+          </div>
           <SessionKeyForm safe={safe} />
           <div
             style={{

@@ -39,160 +39,216 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   };
 
   return (
-    <>
-      <div style={{ marginTop: '40px' }}>Your Safe: {safe.account.address}</div>{' '}
-      <div style={{ marginTop: '10px' }}>
-        ERC-7579 module installed:{' '}
-        {is7579Installed
-          ? 'Yes ✅'
-          : 'No, Click to create a session key'}{' '}
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <h3>Your Safe:</h3>
+        <p>{safe.account.address}</p>
       </div>
-      <ActionTable actions={session!.actions} onActionsChange={handleActionsUpdate} />
-      <div>
-        {is7579Installed ? null : <button
-          disabled={loading || is7579Installed}
-          onClick={async () => {
-            setLoading(true)
-            setError(false)
+      <div style={styles.status}>
+        <h4>ERC-7579 module installed:</h4>
+        <p>{is7579Installed ? 'Yes ✅' : 'No, Click to create a session key'}</p>
+      </div>
 
-            install7579SessionModule(safe, session)
-              .then(txHash => {
-                setTxHash(txHash)
-                setLoading(false)
-                setIs7579Installed(true)
-              })
-              .catch(err => {
-                console.error(err)
-                setLoading(false)
-                setError(true)
-              })
-          }}
-        >
-          Setup the session
-        </button>}
+      <ActionTable actions={session.actions} onActionsChange={handleActionsUpdate} />
+
+      <div style={styles.actionSection}>
+        {!is7579Installed && (
+          <button
+            disabled={loading || is7579Installed}
+            style={styles.button}
+            onClick={async () => {
+              setLoading(true);
+              setError(false);
+              install7579SessionModule(safe, session)
+                .then(txHash => {
+                  setTxHash(txHash);
+                  setLoading(false);
+                  setIs7579Installed(true);
+                })
+                .catch(err => {
+                  console.error(err);
+                  setLoading(false);
+                  setError(true);
+                });
+            }}
+          >
+            Setup the session
+          </button>
+        )}
       </div>
-      <div>
+
+      <div style={styles.buttonGroup}>
         <button
+          style={styles.button}
           disabled={loading || !is7579Installed || !session}
           onClick={async () => {
-            setLoading(true)
-            setError(false)
-
-            updateSession(safe, session!)
-              .then((txHash) => {
-                setTxHash(txHash)
-                setLoading(false)
-                setIs7579Installed(true)
+            setLoading(true);
+            setError(false);
+            updateSession(safe, session)
+              .then(txHash => {
+                setTxHash(txHash);
+                setLoading(false);
               })
               .catch(err => {
-                console.error(err)
-                setLoading(false)
-                setError(true)
-              })
+                console.error(err);
+                setLoading(false);
+                setError(true);
+              });
           }}
         >
           Update the session
         </button>
-      </div>
-      <div>
         <button
-
+          style={styles.button}
           disabled={loading || !is7579Installed}
           onClick={async () => {
-            setLoading(true)
-            setError(false)
-
-            sessionKeyMint(safe, session!)
+            setLoading(true);
+            setError(false);
+            sessionKeyMint(safe, session)
               .then(txHash => {
-                setTxHash(txHash)
-                setLoading(false)
+                setTxHash(txHash);
+                setLoading(false);
               })
               .catch(err => {
-                console.error(err)
-                setLoading(false)
-                setError(true)
-              })
+                console.error(err);
+                setLoading(false);
+                setError(true);
+              });
           }}
         >
           Mint USDT
         </button>
       </div>
-      <div>
-        To: <input name='to' onChange={(e) => setTo(e.target.value)}></input>
-        Value: <input name='to' onChange={(e) => setValue(Number(e.target.value))}></input>
-        <button
-          style={{ margin: '5px' }}
-          disabled={loading || !is7579Installed}
-          onClick={async () => {
-            setLoading(true)
-            setError(false)
-            setTxHash('' as Hex)
-            sessionKeyERC20Transfer(safe, to as Hex, BigInt(value * 10 ** 18), session!)
-              .then(txHash => {
-                setTxHash(txHash)
-                setLoading(false)
-                setError(false)
-              })
-              .catch(err => {
-                console.error(err)
-                setLoading(false)
-                setError(true)
-              })
-          }}
-        >
-          Transfer Token
-        </button>
-        <button
-          style={{ margin: '5px' }}
-          disabled={loading || !is7579Installed}
-          onClick={async () => {
-            setLoading(true)
-            setError(false)
-            setTxHash('' as Hex)
-            sessionKeyNativeTransfer(safe, to as Hex, BigInt(value * 10 ** 18), session!)
-              .then(txHash => {
-                setTxHash(txHash)
-                setLoading(false)
-                setError(false)
-              })
-              .catch(err => {
-                console.error(err)
-                setLoading(false)
-                setError(true)
-              })
-          }}
-        >
-          Transfer ETH
-        </button>
+
+      <div style={styles.transferSection}>
+        <div style={styles.inputGroup}>
+          <label>To:</label>
+          <input
+            style={styles.input}
+            name="to"
+            onChange={(e) => setTo(e.target.value)}
+          />
+        </div>
+        <div style={styles.inputGroup}>
+          <label>Value:</label>
+          <input
+            style={styles.input}
+            name="value"
+            type="number"
+            onChange={(e) => setValue(Number(e.target.value))}
+          />
+        </div>
+
+        <div style={styles.buttonGroup}>
+          <button
+            style={styles.button}
+            disabled={loading || !is7579Installed}
+            onClick={async () => {
+              setLoading(true);
+              setError(false);
+              sessionKeyERC20Transfer(safe, to as Hex, BigInt(value * 10 ** 18), session)
+                .then(txHash => {
+                  setTxHash(txHash);
+                  setLoading(false);
+                })
+                .catch(err => {
+                  console.error(err);
+                  setLoading(false);
+                  setError(true);
+                });
+            }}
+          >
+            Transfer Token
+          </button>
+          <button
+            style={styles.button}
+            disabled={loading || !is7579Installed}
+            onClick={async () => {
+              setLoading(true);
+              setError(false);
+              sessionKeyNativeTransfer(safe, to as Hex, BigInt(value * 10 ** 18), session)
+                .then(txHash => {
+                  setTxHash(txHash);
+                  setLoading(false);
+                })
+                .catch(err => {
+                  console.error(err);
+                  setLoading(false);
+                  setError(true);
+                });
+            }}
+          >
+            Transfer ETH
+          </button>
+        </div>
       </div>
-      <div>
-        {loading ? <p>Processing, please wait...</p> : null}
-        {error ? (
+
+      <div style={styles.statusMessage}>
+        {loading && <p>Processing, please wait...</p>}
+        {error && <p>There was an error processing the transaction. Please try again.</p>}
+        {txHash && (
           <p>
-            There was an error processing the transaction. Please try again.
+            Success!{' '}
+            <a
+              href={`https://sepolia.etherscan.io/tx/${txHash}`}
+              target="_blank"
+              rel="noreferrer"
+              style={styles.link}
+            >
+              View on Etherscan
+            </a>
           </p>
-        ) : null}
-        {txHash ? (
-          <>
-            <p>
-              Success!{' '}
-              <a
-                href={`https://sepolia.etherscan.io/tx/${txHash}`}
-                target='_blank'
-                rel='noreferrer'
-                style={{
-                  textDecoration: 'underline',
-                  fontSize: '14px'
-                }}
-              >
-                View on Etherscan
-              </a>
-            </p>
-          </>
-        ) : null}
+        )}
       </div>
-    </>
+    </div>
   )
 }
+
+const styles = {
+  container: {
+    padding: '20px',
+    maxWidth: '800px',
+    margin: 'auto',
+    fontFamily: 'Arial, sans-serif',
+  },
+  header: {
+    marginBottom: '20px',
+  },
+  status: {
+    marginBottom: '20px',
+    fontSize: '16px',
+  },
+  actionSection: {
+    marginBottom: '20px',
+  },
+  buttonGroup: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '20px',
+  },
+  button: {
+    padding: '10px 20px',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '4px',
+  },
+  inputGroup: {
+    marginBottom: '10px',
+  },
+  input: {
+    padding: '8px',
+    width: '200px',
+  },
+  transferSection: {
+    marginBottom: '20px',
+  },
+  statusMessage: {
+    marginTop: '20px',
+  },
+  link: {
+    color: '#007bff',
+    textDecoration: 'underline',
+  },
+};
 
 export default SessionKeyForm

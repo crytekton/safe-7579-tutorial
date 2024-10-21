@@ -54,7 +54,9 @@ export const pimlicoClient = createPimlicoClient({
   },
 })
 
-export const getSmartAccountClient = async (signer: any) => {
+export const getSmartAccountClient = async (signer: any, nonceKey?: bigint) => {
+  const nonce = nonceKey? nonceKey : bytesToBigInt(randomBytes(4))
+  console.log("Nonce:", nonce)
   const safeAccount = await toSafeSmartAccount({
     client: publicClient,
     owners: [signer],
@@ -65,8 +67,8 @@ export const getSmartAccountClient = async (signer: any) => {
       address: entryPoint07Address,
       version: "0.7",
     }, // global entrypoint
-    nonceKey: bytesToBigInt(randomBytes(4)),
-    saltNonce: bytesToBigInt(randomBytes(4)),
+    nonceKey: nonce,
+    saltNonce: nonce,
     attesters: [
       RHINESTONE_ATTESTER_ADDRESS, // Rhinestone Attester
       MOCK_ATTESTER_ADDRESS, // Mock Attester - do not use in production
@@ -90,7 +92,7 @@ export const getSmartAccountClient = async (signer: any) => {
 
 
 
-  return smartAccountClient as unknown as SafeSmartAccountClient
+  return {safe: smartAccountClient as unknown as SafeSmartAccountClient, nonce}
 }
 
 export function encodeMultiSendData(txs: MetaTransactionData[]): string {
