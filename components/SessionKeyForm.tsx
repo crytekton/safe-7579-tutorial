@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { ActionData, SMART_SESSIONS_ADDRESS, Session } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer, updateSession } from '@/lib/smartSession'
+import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyERC20Transfer, updateSession, sessionKeyNativeTransfer } from '@/lib/smartSession'
 import { Hex } from 'viem'
 import ActionTable from './ActionTable'
 
@@ -91,11 +91,12 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
               })
           }}
         >
-          Create a new session
+          Update the session
         </button>
       </div>
       <div>
         <button
+
           disabled={loading || !is7579Installed}
           onClick={async () => {
             setLoading(true)
@@ -120,12 +121,13 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
         To: <input name='to' onChange={(e) => setTo(e.target.value)}></input>
         Value: <input name='to' onChange={(e) => setValue(Number(e.target.value))}></input>
         <button
+          style={{ margin: '5px' }}
           disabled={loading || !is7579Installed}
           onClick={async () => {
             setLoading(true)
             setError(false)
             setTxHash('' as Hex)
-            sessionKeyTransfer(safe, to as Hex, BigInt(value * 10 ** 18), session!)
+            sessionKeyERC20Transfer(safe, to as Hex, BigInt(value * 10 ** 18), session!)
               .then(txHash => {
                 setTxHash(txHash)
                 setLoading(false)
@@ -140,6 +142,28 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
         >
           Transfer Token
         </button>
+        <button
+          style={{ margin: '5px' }}
+          disabled={loading || !is7579Installed}
+          onClick={async () => {
+            setLoading(true)
+            setError(false)
+            setTxHash('' as Hex)
+            sessionKeyNativeTransfer(safe, to as Hex, BigInt(value * 10 ** 18), session!)
+              .then(txHash => {
+                setTxHash(txHash)
+                setLoading(false)
+                setError(false)
+              })
+              .catch(err => {
+                console.error(err)
+                setLoading(false)
+                setError(true)
+              })
+          }}
+        >
+          Transfer ETH
+        </button>
       </div>
       <div>
         {loading ? <p>Processing, please wait...</p> : null}
@@ -153,7 +177,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             <p>
               Success!{' '}
               <a
-                href={`https://base-sepolia.blockscout.com/tx/${txHash}`}
+                href={`https://sepolia.etherscan.io/tx/${txHash}`}
                 target='_blank'
                 rel='noreferrer'
                 style={{

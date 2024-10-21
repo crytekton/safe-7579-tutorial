@@ -25,7 +25,7 @@ export const STORAGE_PASSKEY_LIST_KEY = 'safe_passkey_list'
 
 const privateKeySession = process.env.NEXT_PUBLIC_PRIVATE_KEY as Hex
 const sessionAccount = privateKeyToAccount(privateKeySession)
-const usdtAddress = "0xc8B3c1D8ccDfcACF4886ac1B4d5289A933f33402" as Address
+export const usdtAddress = "0xB184972b2dE6889118f944EDBDA5907562F3C180" as Address
 const mintSelector = '0x1249c58b' as Hex
 const transferSelector = '0xa9059cbb' as Hex
 
@@ -233,7 +233,7 @@ export const sessionKeyMint = async (safe: SafeSmartAccountClient, session: Sess
   return receipt.receipt.transactionHash
 }
 
-export const sessionKeyTransfer = async (safe: SafeSmartAccountClient, to: Hex, value: bigint, session: Session) => {
+export const sessionKeyERC20Transfer = async (safe: SafeSmartAccountClient, to: Hex, value: bigint, session: Session) => {
   const permissionId = (await getPermissionId({
     client: publicClient,
     session,
@@ -251,6 +251,62 @@ export const sessionKeyTransfer = async (safe: SafeSmartAccountClient, to: Hex, 
         target: actionTransfer.actionTarget,
         value: BigInt(0),
         callData: callData,
+      },
+    ],
+    key: BigInt(
+      pad(SMART_SESSIONS_ADDRESS, {
+        dir: 'right',
+        size: 24,
+      }),
+    ),
+    signUserOpHash: async (userOpHash) => {
+      const signer = privateKeyToAccount(privateKeySession)
+
+      const signature = await signer.signMessage({
+        message: { raw: userOpHash },
+      })
+
+      return encodeSmartSessionSignature({
+        mode: SmartSessionMode.USE,
+        permissionId,
+        signature,
+      })
+    },
+    getDummySignature: async () => {
+      return encodeSmartSessionSignature({
+        mode: SmartSessionMode.USE,
+        permissionId,
+        signature: getOwnableValidatorMockSignature({
+          threshold: 1,
+        }),
+      })
+    },
+  })
+
+  const bundlerClient = createBundlerClient({
+    paymaster: true,
+    client: publicClient,
+    transport: http(pimlicoUrl),
+    chain: sepolia
+  })
+
+  const receipt = await bundlerClient.waitForUserOperationReceipt({ hash: ophash, timeout: 1000000000 })
+
+  return receipt.receipt.transactionHash
+}
+
+export const sessionKeyNativeTransfer = async (safe: SafeSmartAccountClient, to: Hex, value: bigint, session: Session) => {
+  const permissionId = (await getPermissionId({
+    client: publicClient,
+    session,
+  })) as Hex
+  const ophash = await sendUserOp({
+    account: safe.account as Account,
+    actions: [
+      {
+        target: to,
+        value: BigInt(value),
+        callData: '0x00000000',
       },
     ],
     key: BigInt(
