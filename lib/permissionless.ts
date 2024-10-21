@@ -1,5 +1,5 @@
-import { Chain, Client, Hex, HttpTransport, bytesToBigInt, bytesToHex, createPublicClient, createWalletClient, custom, encodePacked, http, toBytes } from 'viem'
-import { generatePrivateKey, privateKeyToAccount, toAccount } from 'viem/accounts'
+import { Chain, Hex, HttpTransport, bytesToBigInt, bytesToHex, createPublicClient, createWalletClient, custom, encodePacked, http, toBytes } from 'viem'
+import { generatePrivateKey, } from 'viem/accounts'
 import { SmartAccountClient, createSmartAccountClient } from "permissionless"
 import { sepolia } from 'viem/chains'
 import { Erc7579Actions, erc7579Actions } from 'permissionless/actions/erc7579'

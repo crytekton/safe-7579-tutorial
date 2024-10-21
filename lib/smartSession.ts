@@ -10,11 +10,10 @@ import {
   getOwnableValidatorMockSignature,
   getRemoveSessionAction,
   getSmartSessionsValidator,
-  getSpendingLimitsPolicy,
   getSudoPolicy,
   getTrustAttestersAction
 } from '@rhinestone/module-sdk'
-import { Address, Hex, PublicClient, encodeAbiParameters, encodeFunctionData, erc20Abi, http, pad, toBytes, toHex, zeroAddress } from 'viem'
+import { Account, Address, Hex, PublicClient, encodeAbiParameters, encodeFunctionData, erc20Abi, http, pad, toBytes, toHex, zeroAddress } from 'viem'
 import { SafeSmartAccountClient, pimlicoUrl, publicClient } from './permissionless';
 import { privateKeyToAccount } from 'viem/accounts';
 import { abi } from './abi';
@@ -99,7 +98,7 @@ export const install7579SessionModule = async (
   const userOpHash = await safe.sendUserOperation({
     calls: [
       {
-        to: trustAttestersAction.target,
+        to: trustAttestersAction.to,
         data: trustAttestersAction.callData
       },
       {
@@ -184,7 +183,7 @@ export const sessionKeyMint = async (safe: SafeSmartAccountClient, session: Sess
   })) as Hex
   console.log(permissionId)
   const ophash = await sendUserOp({
-    account: safe.account,
+    account: safe.account as Account,
     actions: [
       {
         target: actionMint.actionTarget,
@@ -246,7 +245,7 @@ export const sessionKeyTransfer = async (safe: SafeSmartAccountClient, to: Hex, 
     args: [to, value]
   })
   const ophash = await sendUserOp({
-    account: safe.account,
+    account: safe.account as Account,
     actions: [
       {
         target: actionTransfer.actionTarget,
@@ -297,12 +296,12 @@ export const sessionKeyTransfer = async (safe: SafeSmartAccountClient, to: Hex, 
 }
 
 export const updateSession = async (safe: SafeSmartAccountClient, session: Session) => {
-  // const removeAction = getRemoveSessionAction({
-  //   permissionId: (await getPermissionId({
-  //     client: publicClient,
-  //     session,
-  //   })) as Hex
-  // })
+  const removeAction = getRemoveSessionAction({
+    permissionId: (await getPermissionId({
+      client: publicClient,
+      session,
+    })) as Hex
+  })
   const permissionId = (await getPermissionId({
     client: publicClient,
     session,
@@ -320,6 +319,10 @@ export const updateSession = async (safe: SafeSmartAccountClient, session: Sessi
   })
   const userOpHash = await safe.sendUserOperation({
     calls: [{
+      to: removeAction.to,
+      value: 0n,
+      data: removeAction.data
+    },{
       to: enableAction.to,
       value: 0n,
       data: enableAction.data

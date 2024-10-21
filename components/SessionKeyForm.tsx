@@ -4,7 +4,7 @@ import { ActionData, SMART_SESSIONS_ADDRESS, Session } from '@rhinestone/module-
 import { SafeSmartAccountClient } from '@/lib/permissionless'
 import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyTransfer, updateSession } from '@/lib/smartSession'
 import { Hex } from 'viem'
-import ActionTable from './actionTable'
+import ActionTable from './ActionTable'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
@@ -35,7 +35,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   }, [safe])
 
   const handleActionsUpdate = (updatedActions: ActionData[]) => {
-    setSession({...session, actions: updatedActions}); // Update the parent state
+    setSession({ ...session, actions: updatedActions }); // Update the parent state
   };
 
   return (
@@ -47,9 +47,9 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           ? 'Yes ✅'
           : 'No, Click to create a session key'}{' '}
       </div>
-      <ActionTable actions={session!.actions} onActionsChange={handleActionsUpdate}/>
+      <ActionTable actions={session!.actions} onActionsChange={handleActionsUpdate} />
       <div>
-       { is7579Installed ? null : <button
+        {is7579Installed ? null : <button
           disabled={loading || is7579Installed}
           onClick={async () => {
             setLoading(true)
