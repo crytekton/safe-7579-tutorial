@@ -81,7 +81,7 @@ export const install7579SessionModule = async (
   safe: SafeSmartAccountClient,
   session: Session
 ) => {
-  const module = getSmartSessionsValidator({
+  const sessionValidator = getSmartSessionsValidator({
     sessions: [session],
     hook: zeroAddress
   });
@@ -130,7 +130,7 @@ export const install7579SessionModule = async (
           args: [
             1n,
             SMART_SESSIONS_ADDRESS,
-            module.initData || '0x'
+            sessionValidator.initData || '0x'
           ]
         })
       },
