@@ -1,20 +1,21 @@
-import { ActionData, PolicyData, getSudoPolicy } from '@rhinestone/module-sdk';
+import React from 'react';
+import { ActionData, getSudoPolicy } from '@rhinestone/module-sdk';
 import { Address, Hex } from 'viem';
+import ActionRow from './ActionRow';
 
 interface ActionTableProps {
-    actions: ActionData[];
-    onActionsChange: (updatedActions: ActionData[]) => void;
-  }
-  
+  actions: ActionData[];
+  onActionsChange: (updatedActions: ActionData[]) => void;
+}
 
-const ActionTable: React.FC<ActionTableProps> = ({actions: actionsData, onActionsChange}) => {
-  // State to hold the list of actions (rows)
+const ActionTable: React.FC<ActionTableProps> = ({ actions: actionsData, onActionsChange }) => {
   const sudoPolicies = [
     {
       policy: getSudoPolicy().address,
       initData: getSudoPolicy().initData,
     },
-  ]
+  ];
+
   const handleInputChange = (
     index: number,
     field: 'actionTarget' | 'actionTargetSelector',
@@ -22,18 +23,20 @@ const ActionTable: React.FC<ActionTableProps> = ({actions: actionsData, onAction
   ) => {
     const updatedActions = [...actionsData];
     updatedActions[index][field] = value;
+    console.log(updatedActions)
     onActionsChange(updatedActions); // Call parent function to update state
   };
 
-  // Function to handle adding a new action (row)
   const addAction = () => {
     const updatedActions = [...actionsData, { actionTarget: '0x' as Address, actionTargetSelector: '0x' as Hex, actionPolicies: sudoPolicies }];
     onActionsChange(updatedActions); // Update parent state
   };
 
-  // Function to handle removing an action (row)
   const removeAction = (index: number) => {
+    console.log(actionsData)
+    console.log(index)
     const updatedActions = actionsData.filter((_, i) => i !== index);
+    console.log(updatedActions)
     onActionsChange(updatedActions); // Update parent state
   };
 
@@ -50,29 +53,13 @@ const ActionTable: React.FC<ActionTableProps> = ({actions: actionsData, onAction
         </thead>
         <tbody>
           {actionsData.map((action, index) => (
-            <tr key={index}>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                <input
-                  type="text"
-                  value={action.actionTarget}
-                  onChange={(e) =>
-                    handleInputChange(index, 'actionTarget', e.target.value as Address)
-                  }
-                />
-              </td>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                <input
-                  type="text"
-                  value={action.actionTargetSelector}
-                  onChange={(e) =>
-                    handleInputChange(index, 'actionTargetSelector', e.target.value as Hex)
-                  }
-                />
-              </td>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                <button onClick={() => removeAction(index)}>Remove</button>
-              </td>
-            </tr>
+            <ActionRow
+              key={index}
+              action={action}
+              index={index}
+              onInputChange={handleInputChange}
+              onRemove={removeAction}
+            />
           ))}
         </tbody>
       </table>
