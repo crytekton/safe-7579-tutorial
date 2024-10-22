@@ -72,7 +72,7 @@ const ActionRow: React.FC<ActionRowProps> = ({ action, index, onInputChange, onR
                     {loadingABI ? (
                         <option value="">Loading ABI...</option> // Show loading option
                     ) : contractABI ? (
-                        contractABI.map((func) => (
+                        contractABI.map((func: {name: string}) => (
                             <option key={func.name} value={func.name}>
                                 {func.name}
                             </option>
