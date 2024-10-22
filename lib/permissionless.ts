@@ -33,14 +33,6 @@ export const erc7579LaunchpadAddress = '0xEBe001b3D534B9B6E2500FB78E67a1A137f561
 export const PAYMASTER_ADDRESS = '0x0000000000325602a77416A16136FDafd04b299f' // SEPOLIA
 
 
-const privateKey =
-  (process.env.NEXT_PUBLIC_PRIVATE_KEY as Hex) ??
-  (() => {
-    const pk = generatePrivateKey()
-    console.log('Private key to add to .env.local:', `PRIVATE_KEY=${pk}`)
-    return pk
-  })() as Hex
-
 export const publicClient = createPublicClient({
   chain: sepolia,
   transport: http(rpc_url),
@@ -56,7 +48,6 @@ export const pimlicoClient = createPimlicoClient({
 
 export const getSmartAccountClient = async (signer: any, nonceKey?: bigint) => {
   const nonce = nonceKey? nonceKey : bytesToBigInt(randomBytes(4))
-  console.log("Nonce:", nonce)
   const safeAccount = await toSafeSmartAccount({
     client: publicClient,
     owners: [signer],

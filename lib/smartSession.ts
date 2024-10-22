@@ -146,7 +146,6 @@ export const sessionKeyMint = async (safe: SafeSmartAccountClient, session: Sess
     client: publicClient,
     session,
   })) as Hex
-  console.log(permissionId)
   const ophash = await sendUserOp({
     account: safe.account as Account,
     actions: [
@@ -203,7 +202,6 @@ export const sessionKeyERC20Transfer = async (safe: SafeSmartAccountClient, to: 
     client: publicClient,
     session,
   })) as Hex
-  console.log(permissionId)
   const callData = encodeFunctionData({
     abi: erc20Abi,
     functionName: 'transfer',
@@ -327,8 +325,6 @@ export const updateSession = async (safe: SafeSmartAccountClient, session: Sessi
     client: publicClient,
     session,
   })) as Hex
-  console.log(permissionId)
-  console.log(session)
   const enableAction = getEnableSessionsAction({
     sessions: [session]
   })

@@ -30,7 +30,6 @@ const ActionRow: React.FC<ActionRowProps> = ({ action, index, onInputChange, onR
                     });
                 }
                 abi.push({name: 'native-transfer'})
-                console.log(abi)
                 setContractABI(abi);
             } catch (error) {
                 setContractABI([{name: 'native-transfer'}]);

@@ -44,7 +44,6 @@ export default function Home() {
     const { safe, nonce: new_nonce } = await getSmartAccountClient(provider, nonce)
     setSafe(safe)
     setNonce(new_nonce)
-    console.log(nonce)
     const unwatch = publicClient.watchBlocks(
       {
         onBlock: async () => {
