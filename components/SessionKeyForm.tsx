@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { ActionData, SMART_SESSIONS_ADDRESS, Session } from '@rhinestone/module-sdk'
 import { SafeSmartAccountClient } from '@/lib/permissionless'
-import ActionTable from '@/components/ActionTable'
+import ActionTable from './ActionTable'
 import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyERC20Transfer, updateSession, sessionKeyNativeTransfer } from '@/lib/smartSession'
 import { Hex } from 'viem'
 
