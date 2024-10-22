@@ -4,7 +4,7 @@ import { ActionData, SMART_SESSIONS_ADDRESS, Session } from '@rhinestone/module-
 import { SafeSmartAccountClient } from '@/lib/permissionless'
 import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyERC20Transfer, updateSession, sessionKeyNativeTransfer } from '@/lib/smartSession'
 import { Hex } from 'viem'
-import ActionTable from './ActionTable'
+import ActionTable from '@/components/ActionTable'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
