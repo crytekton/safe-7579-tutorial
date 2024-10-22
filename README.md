@@ -1,45 +1,44 @@
-# How to build an app with Safe and ERC-7579
+# Safe 7579 Tutorial - Smart Sessions
 
-This example app shows how to create a web app for using ERC-7579 in your Safe. Please read [How to build an app with Safe and ERC-7579](https://docs.safe.global/advanced/erc-7579/tutorial) to see how this app was created.
+This project demonstrates the use of smart sessions with **Safe Protocol**, implemented using **Next.js** and **TypeScript**. The app includes components for managing contract actions and session keys, alongside utilities for blockchain interactions.
 
-## What you’ll need
+## Project Structure
 
-**Prerequisite knowledge:** You will need some basic experience with [React](https://react.dev/learn), [Next.js](https://nextjs.org/docs), and [ERC-7579](https://docs.safe.global/advanced/erc-7579/overview).
+- **app/components**: UI components such as `ActionRow`, `ActionTable`, and `SessionKeyForm` for managing contract actions and session data.
+- **lib**: Utility functions for contract interaction (`abi.ts`, `sendUserOp.ts`), session management (`smartSession.ts`, `passkey.ts`), and permissionless actions (`permissionless.ts`).
+- **abi**: Contains ABI data used for interacting with contracts.
 
-Before progressing with the tutorial, please make sure you have:
+## Installation
 
-- Downloaded and installed [Node.js](https://nodejs.org/en/download/package-manager) and [pnpm](https://pnpm.io/installation).
-- Created an API key from [Pimlico](https://www.pimlico.io/).
-
-
-## Getting Started
-
-To install this example application, run the following commands:
-
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Install dependencies
+    ```bash
+    pnpm install
+    ```
+3. Create an .env file from .env.example and fill in the required environment variables:
 ```bash
-git clone https://github.com/5afe/safe-7579-tutorial.git
-cd safe-7579-tutorial
-pnpm i
+    NEXT_PUBLIC_PIMLICO_API_KEY=<Your Pimlico API Key>
+    NEXT_PUBLIC_PRIVATE_KEY=<Your Private Key>
+```
+4. Run the development server:
+```bash
+    pnpm dev
 ```
 
-This will get a copy of the project installed locally. Now, create a file named `.env.local` at the root of your project, and add your Pimlico API key to it:
+## Key Features
 
-```bash
-echo "NEXT_PUBLIC_PIMLICO_API_KEY='your_pimlico_api_key_goes_here'" > .env.local
-```
+- **Action Management**: A dynamic table (using `ActionTable.tsx` and `ActionRow.tsx`) for handling multiple contract actions.
+- **Session Key Management**: Secure session key handling using the `SessionKeyForm.tsx`.
+- **Permissionless Functionality**: Includes logic for managing permissionless contract interactions.
 
-Run the local development server with the following command:
+## Environment Variables
 
-```bash
-pnpm dev
-```
+- `NEXT_PUBLIC_PIMLICO_API_KEY`: API key for interacting with the Pimlico service.
+- `NEXT_PUBLIC_PRIVATE_KEY`: Private key for signing and submitting transactions.
 
-Go to `http://localhost:3000` in your browser to see the application.
+## Contributing
 
-## Help
-
-Please post any questions on [Stack Exchange](https://ethereum.stackexchange.com/questions/tagged/safe-core) with the `safe-core` tag.
-
-## License
-
-MIT, see [LICENSE](LICENSE).
+Feel free to fork, submit pull requests, or open issues to improve this project.
