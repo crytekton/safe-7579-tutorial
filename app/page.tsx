@@ -14,6 +14,8 @@ import { isEthereumWallet } from '@dynamic-labs/ethereum'
 import { Client, Hex, erc20Abi, formatEther } from 'viem'
 import { usdtAddress } from '@/lib/smartSession'
 
+
+
 export default function Home() {
   const [safe, setSafe] = useState<SafeSmartAccountClient | undefined>()
   const [provider, setProvider] = useState<Client | null>()
@@ -35,7 +37,6 @@ export default function Home() {
   const handleInputChange = (event: { target: { value: string } }) => {
     setNonce(BigInt(event.target.value));
   };
-
   const handleLoadSafe = async () => {
     if (!provider) {
       return
@@ -61,96 +62,51 @@ export default function Home() {
   }
 
   return !isLoggedIn ? null : (
-    <div style={styles.container}>
+    <>
       {safe == null ? (
         <>
-          <div style={styles.card}>
-            <h2 style={styles.heading}>Create or Load a Safe</h2>
-            <div style={styles.inputContainer}>
-              <button onClick={handleLoadSafe} style={styles.button}>
-                Create Safe
-              </button>
-              <input
-                type="text"
-                value={nonce.toString()}
-                onChange={handleInputChange}
-                placeholder="Enter nonce"
-                style={styles.input}
-              />
-              <button onClick={handleLoadSafe} style={styles.button}>
-                Load Safe
-              </button>
-            </div>
+          <div>
+            <button onClick={handleLoadSafe} style={{ margin: '5px' }}>
+              Create Safe
+            </button>
           </div>
+
+          <div>
+            <input
+              type="text"
+              value={nonce.toString()}
+              onChange={handleInputChange}
+              placeholder="Enter value"
+              style={{ margin: '5px' }}
+            />
+            <button onClick={handleLoadSafe} style={{ margin: '5px' }}>
+              Load Safe
+            </button>
+          </div>
+
         </>
       ) : (
         <>
-          <div style={styles.card}>
-            <h2 style={styles.heading}>Safe Details</h2>
-            <div style={styles.infoContainer}>
-              <p style={styles.infoText}>Current Balance: <strong>{balance} ETH</strong></p>
-              <p style={styles.infoText}>USDT Balance: <strong>{balanceERC20} USD</strong></p>
-              <p style={styles.infoText}>Safe Nonce: <strong>{nonce.toString()}</strong></p>
-            </div>
+          <div>
+            Current balance: {balance} ETH
           </div>
-
-          <div style={styles.card}>
-            <SessionKeyForm safe={safe} />
+          <div>
+            Current balance: {balanceERC20} USD
+          </div>
+          <div>
+            Safe nonce {nonce.toString()}
+          </div>
+          <SessionKeyForm safe={safe} />
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center'
+            }}
+          >
           </div>
         </>
       )}
-    </div>
+    </>
   )
-}
-
-const styles = {
-  container: {
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    minHeight: '100vh',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '600px',
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-    borderRadius: '10px',
-    padding: '20px',
-    marginBottom: '20px',
-    textAlign: 'center',
-  },
-  heading: {
-    fontSize: '1.5rem',
-    marginBottom: '15px',
-  },
-  inputContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  input: {
-    width: '80%',
-    padding: '10px',
-    margin: '10px 0',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-  },
-  button: {
-    width: '80%',
-    padding: '10px',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    marginBottom: '10px',
-  },
-  infoContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  infoText: {
-    fontSize: '1rem',
-    margin: '10px 0',
-  },
 }
