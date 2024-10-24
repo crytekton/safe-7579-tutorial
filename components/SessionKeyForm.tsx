@@ -5,7 +5,7 @@ import { SafeSmartAccountClient } from '@/lib/permissionless'
 import ActionTable from './ActionTable'
 import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyERC20Transfer, updateSession, sessionKeyNativeTransfer } from '@/lib/smartSession'
 import { Hex } from 'viem'
-import { installRoles } from '@/lib/roles'
+import { installRoles, rolesMint } from '@/lib/roles'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
@@ -86,7 +86,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
                 });
             }}
           >
-            Setup the session
+            Setup the session with Smart sessions
           </button>
         )}
          {!is7579Installed && (
@@ -110,7 +110,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
                 });
             }}
           >
-            Install roles
+            Install the session with Roles
           </button>
         )}
         <button
@@ -157,6 +157,27 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           }}
         >
           Mint USDT
+        </button>
+        <button
+          style={styles.button}
+          disabled={loading || !is7579Installed}
+          onClick={async () => {
+            setLoading(true);
+            setError(false);
+            rolesMint()
+              .then(txHash => {
+                setTxHash(txHash);
+                updateTransactionHistory(txHash, true)
+                setLoading(false);
+              })
+              .catch(err => {
+                console.error(err);
+                setLoading(false);
+                setError(true);
+              });
+          }}
+        >
+          Mint USDT with role 
         </button>
       </div>
 

@@ -1,59 +1,82 @@
-import { Address, decodeAbiParameters, encodeAbiParameters, encodeFunctionData, parseAbiParameters } from "viem";
-import { SafeSmartAccountClient, publicClient } from "./permissionless";
-import { moduleFactoryAbi, safeSingletonAbi } from "./abi";
-import { rolesAbi } from "zodiac-roles-sdk";
+import { Address, Hex, encodeFunctionData, http, keccak256, stringToHex } from "viem";
+import { OperationType, SafeSmartAccountClient, pimlicoClient, pimlicoUrl, publicClient } from "./permissionless";
+import { rolesAbi, setUpRolesMod } from "zodiac-roles-sdk";
+import { usdtAddress } from "./smartSession";
+import { sepolia } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
+import { toSafeSmartAccount } from "permissionless/accounts";
+import { createSmartAccountClient } from "permissionless";
 
-const RolesSingletonAddress = "0x9646fDAD06d3e24444381f44362a3B0eB343D337"
-const ModuleFactory = "0x000000000000aDdB49795b0f9bA5BC298cDda236"
+const privateKeySession = process.env.NEXT_PUBLIC_PRIVATE_KEY as Hex
+const sessionAccount = privateKeyToAccount(privateKeySession)
 
-const encodedSetupData = encodeAbiParameters(
-    parseAbiParameters('address, address, address'),
-    [
-        '0x32eb57110595F880375BBE495384EeC733adc3f7', '0x32eb57110595F880375BBE495384EeC733adc3f7', '0x32eb57110595F880375BBE495384EeC733adc3f7'
-    ]
-)
+const getSafeSession = async () => {
+    const safeSessionRoles = await toSafeSmartAccount({
+        client: publicClient,
+        owners: [sessionAccount],
+        nonceKey: 1n,
+        saltNonce: 1n,
+        version: "1.4.1"
+    })
+    
+    const smartAccountClient = createSmartAccountClient({
+        account: safeSessionRoles,
+        chain: sepolia,
+        bundlerTransport: http(pimlicoUrl),
+        paymaster: pimlicoClient,
+        userOperation: {
+          estimateFeesPerGas: async () => {
+            return (await pimlicoClient.getUserOperationGasPrice()).fast
+          },
+        },
+      })
+      return smartAccountClient
+}
 
-const moduleSetupData = encodeFunctionData({
-    abi: rolesAbi,
-    functionName: 'setUp',
-    args: [encodedSetupData]
-})
-
-const deployData = encodeFunctionData({
-    abi: moduleFactoryAbi,
-    functionName: 'deployModule',
-    args: [RolesSingletonAddress, moduleSetupData, BigInt(Number(1))]
-})
-
-const enableModule = (address: Address) => encodeFunctionData({
-    abi: safeSingletonAbi,
-    functionName: 'enableModule',
-    args: [address]
-})
 
 export const installRoles = async (safe: SafeSmartAccountClient) => {
-    const call = await publicClient.call({
-        account: safe.account,
-        data: deployData,
-        to: ModuleFactory
+    const smartAccountClient = await getSafeSession()
+    console.log("Safe install",smartAccountClient.account.address)
+    const roleSetup = setUpRolesMod({
+        avatar: safe.account.address,
+        owner: safe.account.address,
+        target: safe.account.address,
+        roles: [{
+            key: 'DEFAULT',
+            members: [smartAccountClient.account.address],
+            permissions: [{ targetAddress: usdtAddress }]
+        }]
     })
-    if (!call.data) return '0x'
-    const decodedAddress = decodeAbiParameters(
-        parseAbiParameters('address'),
-        call.data
+    const calls = roleSetup.map(call => {
+        return {
+            to: call.to as Address,
+            data: call.data as Hex
+        }
+    }
     )
     const userOpHash = await safe.sendUserOperation({
+        calls: calls
+    })
+    const receipt = await safe.waitForUserOperationReceipt({ hash: userOpHash })
+    return receipt.receipt.transactionHash
+}
+
+export const rolesMint = async () => {
+    const smartAccountClient = await getSafeSession()
+    console.log("Safe mint",smartAccountClient.account.address)
+    
+    const userOpHash = await smartAccountClient.sendUserOperation({
         calls: [
             {
-                to: ModuleFactory,
-                data: deployData
-            },
-            {
-                to: safe.account.address,
-                data: enableModule(decodedAddress[0])
+                to: '0xBC8a19D8f48D26A1484D99b571A0129019745603',
+                data: encodeFunctionData({
+                    abi: rolesAbi,
+                    functionName: 'execTransactionWithRole',
+                    args:[usdtAddress, 0n, '0x1249c58b', OperationType.Call, stringToHex('DEFAULT', { size: 32 }), false]
+                })
             }
         ]
     })
-    const receipt = await safe.waitForUserOperationReceipt({ hash: userOpHash })
+    const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash })
     return receipt.receipt.transactionHash
 }
