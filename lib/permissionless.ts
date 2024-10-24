@@ -60,11 +60,6 @@ export const getSmartAccountClient = async (signer: any, nonceKey?: bigint) => {
     }, // global entrypoint
     nonceKey: nonce,
     saltNonce: nonce,
-    attesters: [
-      RHINESTONE_ATTESTER_ADDRESS, // Rhinestone Attester
-      MOCK_ATTESTER_ADDRESS, // Mock Attester - do not use in production
-    ],
-    attestersThreshold: 1,
     version: "1.4.1",
   })
 

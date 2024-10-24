@@ -1,22 +1,59 @@
-import { encodeFunctionData } from "viem";
-import { SafeSmartAccountClient } from "./permissionless";
-import { randomBytes } from "crypto";
+import { Address, decodeAbiParameters, encodeAbiParameters, encodeFunctionData, parseAbiParameters } from "viem";
+import { SafeSmartAccountClient, publicClient } from "./permissionless";
+import { moduleFactoryAbi, safeSingletonAbi } from "./abi";
+import { rolesAbi } from "zodiac-roles-sdk";
 
 const RolesSingletonAddress = "0x9646fDAD06d3e24444381f44362a3B0eB343D337"
 const ModuleFactory = "0x000000000000aDdB49795b0f9bA5BC298cDda236"
 
-const deployData = encodeFunctionData({
-    abi: [{"inputs":[],"name":"FailedInitialization","type":"error"},{"inputs":[{"internalType":"address","name":"address_","type":"address"}],"name":"TakenAddress","type":"error"},{"inputs":[{"internalType":"address","name":"target","type":"address"}],"name":"TargetHasNoCode","type":"error"},{"inputs":[{"internalType":"address","name":"target","type":"address"}],"name":"ZeroAddress","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"proxy","type":"address"},{"indexed":true,"internalType":"address","name":"masterCopy","type":"address"}],"name":"ModuleProxyCreation","type":"event"},{"inputs":[{"internalType":"address","name":"masterCopy","type":"address"},{"internalType":"bytes","name":"initializer","type":"bytes"},{"internalType":"uint256","name":"saltNonce","type":"uint256"}],"name":"deployModule","outputs":[{"internalType":"address","name":"proxy","type":"address"}],"stateMutability":"nonpayable","type":"function"}] as const,
-    functionName: 'deployModule',
-    args: [RolesSingletonAddress, '0x', BigInt(Number(randomBytes(4)))]
+const encodedSetupData = encodeAbiParameters(
+    parseAbiParameters('address, address, address'),
+    [
+        '0x32eb57110595F880375BBE495384EeC733adc3f7', '0x32eb57110595F880375BBE495384EeC733adc3f7', '0x32eb57110595F880375BBE495384EeC733adc3f7'
+    ]
+)
+
+const moduleSetupData = encodeFunctionData({
+    abi: rolesAbi,
+    functionName: 'setUp',
+    args: [encodedSetupData]
 })
 
-const installRoles = async (safe: SafeSmartAccountClient) => {
-    safe.sendUserOperation({
-        calls: [{
-            to: ModuleFactory,
-            data: deployData
-        }]
+const deployData = encodeFunctionData({
+    abi: moduleFactoryAbi,
+    functionName: 'deployModule',
+    args: [RolesSingletonAddress, moduleSetupData, BigInt(Number(1))]
+})
 
+const enableModule = (address: Address) => encodeFunctionData({
+    abi: safeSingletonAbi,
+    functionName: 'enableModule',
+    args: [address]
+})
+
+export const installRoles = async (safe: SafeSmartAccountClient) => {
+    const call = await publicClient.call({
+        account: safe.account,
+        data: deployData,
+        to: ModuleFactory
     })
+    if (!call.data) return '0x'
+    const decodedAddress = decodeAbiParameters(
+        parseAbiParameters('address'),
+        call.data
+    )
+    const userOpHash = await safe.sendUserOperation({
+        calls: [
+            {
+                to: ModuleFactory,
+                data: deployData
+            },
+            {
+                to: safe.account.address,
+                data: enableModule(decodedAddress[0])
+            }
+        ]
+    })
+    const receipt = await safe.waitForUserOperationReceipt({ hash: userOpHash })
+    return receipt.receipt.transactionHash
 }

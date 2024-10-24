@@ -34,9 +34,15 @@ export default function Home() {
     init()
   }, [isLoggedIn, primaryWallet])
 
-  const handleInputChange = (event: { target: { value: string } }) => {
-    setNonce(BigInt(event.target.value));
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+  
+    // Convert the input to a BigInt and check if it's non-negative
+    if (!isNaN(Number(value)) && BigInt(value) >= 0n) {
+      setNonce(BigInt(value)); // Only set if non-negative
+    }
   };
+  
   const handleLoadSafe = async () => {
     if (!provider) {
       return
@@ -67,12 +73,12 @@ export default function Home() {
         <>
           <div>
             <button onClick={handleLoadSafe} style={{ margin: '5px' }}>
-              Create Safe
+              Create new Safe
             </button>
           </div>
 
           <div>
-            <input
+            Nonce:<input
               type="text"
               value={nonce.toString()}
               onChange={handleInputChange}
@@ -80,7 +86,7 @@ export default function Home() {
               style={{ margin: '5px' }}
             />
             <button onClick={handleLoadSafe} style={{ margin: '5px' }}>
-              Load Safe
+              Load existing Safe
             </button>
           </div>
 

@@ -5,6 +5,7 @@ import { SafeSmartAccountClient } from '@/lib/permissionless'
 import ActionTable from './ActionTable'
 import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyERC20Transfer, updateSession, sessionKeyNativeTransfer } from '@/lib/smartSession'
 import { Hex } from 'viem'
+import { installRoles } from '@/lib/roles'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
@@ -16,6 +17,10 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   const [is7579Installed, setIs7579Installed] = useState(false)
   const [to, setTo] = useState('')
   const [value, setValue] = useState(0)
+
+  const [transactions, setTransactions] = useState<
+  { hash: string; link: string; success: boolean }[]
+>([])
 
   useEffect(() => {
     const init7579Module = async () => {
@@ -37,6 +42,12 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   const handleActionsUpdate = (updatedActions: ActionData[]) => {
     setSession({ ...session, actions: updatedActions }); // Update the parent state
   };
+
+  // Function to update the transaction history state
+  const updateTransactionHistory = (hash: string, success: boolean) => {
+    const link = `https://sepolia.etherscan.io/tx/${hash}`
+    setTransactions([...transactions, { hash, link, success }])
+  }
 
   return (
     <div style={styles.container}>
@@ -64,6 +75,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
               install7579SessionModule(safe, session)
                 .then(txHash => {
                   setTxHash(txHash);
+                  updateTransactionHistory(txHash, true)
                   setLoading(false);
                   setIs7579Installed(true);
                 })
@@ -75,6 +87,30 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             }}
           >
             Setup the session
+          </button>
+        )}
+         {!is7579Installed && (
+          <button
+            disabled={loading || is7579Installed}
+            style={styles.button}
+            onClick={async () => {
+              setLoading(true);
+              setError(false);
+              installRoles(safe)
+                .then(txHash => {
+                  setTxHash(txHash);
+                  updateTransactionHistory(txHash, true)
+                  setLoading(false);
+                  setIs7579Installed(true);
+                })
+                .catch(err => {
+                  console.error(err);
+                  setLoading(false);
+                  setError(true);
+                });
+            }}
+          >
+            Install roles
           </button>
         )}
         <button
@@ -110,6 +146,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             sessionKeyMint(safe, session)
               .then(txHash => {
                 setTxHash(txHash);
+                updateTransactionHistory(txHash, true)
                 setLoading(false);
               })
               .catch(err => {
@@ -153,6 +190,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
                 .then(txHash => {
                   setTxHash(txHash);
                   setLoading(false);
+                  updateTransactionHistory(txHash, true)
                 })
                 .catch(err => {
                   console.error(err);
@@ -173,6 +211,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
                 .then(txHash => {
                   setTxHash(txHash);
                   setLoading(false);
+                  updateTransactionHistory(txHash, true)
                 })
                 .catch(err => {
                   console.error(err);
@@ -203,6 +242,30 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           </p>
         )}
       </div>
+      {/* Transaction History Table */}
+      <h3>Transaction History</h3>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th>Transaction Hash</th>
+            <th>Link</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {transactions.map((tx, index) => (
+            <tr key={index}>
+              <td>{tx.hash}</td>
+              <td>
+                <a href={tx.link} target="_blank" rel="noreferrer" style={styles.link}>
+                  View on Etherscan
+                </a>
+              </td>
+              <td>{tx.success ? 'Success' : 'Failed'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -253,6 +316,24 @@ const styles = {
   link: {
     color: '#007bff',
     textDecoration: 'underline',
+  },
+  table: {
+    width: '100%',              // Full width of the container
+    marginTop: '20px',           // Adds some space above the table
+    textAlign: 'left' as const,           // Aligns text to the left
+  },
+  th: {
+    borderBottom: '2px solid #ddd',  // Adds a border below headers
+    padding: '12px 15px',            // Adds padding for spacing
+    backgroundColor: '#f4f4f9',      // Light background for headers
+    fontWeight: 'bold',              // Bold font for header text
+  },
+  td: {
+    borderBottom: '1px solid #ddd',  // Adds a border below table cells
+    padding: '10px 15px',            // Adds padding for spacing
+  },
+  trHover: {
+    backgroundColor: '#f9f9f9',      // Hover effect for table rows
   },
 };
 

@@ -8,15 +8,15 @@ import {
   encodeSmartSessionSignature,
   getEnableSessionsAction,
   getOwnableValidatorMockSignature,
+  getPermissionId,
   getRemoveSessionAction,
   getSmartSessionsValidator,
   getSudoPolicy,
   getTrustAttestersAction
 } from '@rhinestone/module-sdk'
-import { Account, Address, Hex, PublicClient, encodeAbiParameters, encodeFunctionData, erc20Abi, http, pad, toBytes, toHex, zeroAddress } from 'viem'
+import { Account, Address, Hex, encodeAbiParameters, encodeFunctionData, erc20Abi, http, pad, toBytes, toHex, zeroAddress } from 'viem'
 import { SafeSmartAccountClient, pimlicoUrl, publicClient } from './permissionless';
 import { privateKeyToAccount } from 'viem/accounts';
-import { abi } from './abi';
 import { sendUserOp } from './sendUserOp';
 import { createBundlerClient } from 'viem/account-abstraction';
 import { sepolia } from 'viem/chains';
@@ -143,7 +143,6 @@ export const install7579SessionModule = async (
 
 export const sessionKeyMint = async (safe: SafeSmartAccountClient, session: Session) => {
   const permissionId = (await getPermissionId({
-    client: publicClient,
     session,
   })) as Hex
   const ophash = await sendUserOp({
@@ -199,7 +198,6 @@ export const sessionKeyMint = async (safe: SafeSmartAccountClient, session: Sess
 
 export const sessionKeyERC20Transfer = async (safe: SafeSmartAccountClient, to: Hex, value: bigint, session: Session) => {
   const permissionId = (await getPermissionId({
-    client: publicClient,
     session,
   })) as Hex
   const callData = encodeFunctionData({
@@ -260,7 +258,6 @@ export const sessionKeyERC20Transfer = async (safe: SafeSmartAccountClient, to: 
 
 export const sessionKeyNativeTransfer = async (safe: SafeSmartAccountClient, to: Hex, value: bigint, session: Session) => {
   const permissionId = (await getPermissionId({
-    client: publicClient,
     session,
   })) as Hex
   const ophash = await sendUserOp({
@@ -317,14 +314,9 @@ export const sessionKeyNativeTransfer = async (safe: SafeSmartAccountClient, to:
 export const updateSession = async (safe: SafeSmartAccountClient, session: Session) => {
   const removeAction = getRemoveSessionAction({
     permissionId: (await getPermissionId({
-      client: publicClient,
       session,
     })) as Hex
   })
-  const permissionId = (await getPermissionId({
-    client: publicClient,
-    session,
-  })) as Hex
   const enableAction = getEnableSessionsAction({
     sessions: [session]
   })
@@ -347,19 +339,4 @@ export const updateSession = async (safe: SafeSmartAccountClient, session: Sessi
   })
   const receipt = await bundlerClient.waitForUserOperationReceipt({ hash: userOpHash })
   return receipt.receipt.transactionHash
-}
-
-export const getPermissionId = async ({
-  client,
-  session,
-}: {
-  client: PublicClient
-  session: Session
-}) => {
-  return (await client.readContract({
-    address: SMART_SESSIONS_ADDRESS,
-    abi,
-    functionName: 'getPermissionId',
-    args: [session],
-  })) as string
 }
