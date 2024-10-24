@@ -210,7 +210,7 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
 const styles = {
   container: {
     padding: '20px',
-    maxWidth: '800px',
+    width: '80%',
     margin: 'auto',
     fontFamily: 'Arial, sans-serif',
   },

@@ -58,12 +58,14 @@ export default function RootLayout({
           </div>
           <div
             style={{
+              width: '90%',  // Increased width to 90% of the viewport
+              maxWidth: '1200px', // Added a max-width to ensure it doesn't stretch too wide
+              margin: '0 auto', // Center the content by auto margins
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              marginLeft: '40px',
-              marginRight: '40px',
-              flexDirection: 'column'
+              justifyContent: 'center',
+              flexDirection: 'column',
+              padding: '20px' // Optional padding for better spacing
             }}
           >
             {children}
