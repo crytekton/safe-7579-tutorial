@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActionData, getSudoPolicy } from '@rhinestone/module-sdk';
 import { Address, Hex } from 'viem';
 import ActionRow from './ActionRow';
@@ -9,6 +9,7 @@ interface ActionTableProps {
 }
 
 const ActionTable: React.FC<ActionTableProps> = ({ actions: actionsData, onActionsChange }) => {
+  const [isTableVisible, setIsTableVisible] = useState<boolean>(true);
   const sudoPolicies = [
     {
       policy: getSudoPolicy().address,
@@ -38,32 +39,42 @@ const ActionTable: React.FC<ActionTableProps> = ({ actions: actionsData, onActio
     console.log("table", actionsData)
   };
 
+  const toggleTableVisibility = () => {
+    setIsTableVisible(!isTableVisible); // Toggle visibility state
+  };
+
   return (
     <div>
-      <h3>Actions Table</h3>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Target</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Selector</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {actionsData.map((action, index) => (
-            <ActionRow
-              key={index}
-              action={action}
-              index={index}
-              onInputChange={handleInputChange}
-              onRemove={removeAction}
-            />
-          ))}
-        </tbody>
-      </table>
-      <button onClick={addAction} style={{ marginTop: '10px' }}>
-        Add Action
+      <h3>Action manager</h3>
+      <button onClick={toggleTableVisibility} style={{ marginBottom: '10px' }}>
+        {isTableVisible ? 'Hide Table' : 'Show Table'}
       </button>
+      {isTableVisible && ( // Conditionally render the table
+        <>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Target</th>
+                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Selector</th>
+                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {actionsData.map((action, index) => (
+                <ActionRow
+                  key={index}
+                  action={action}
+                  index={index}
+                  onInputChange={handleInputChange}
+                  onRemove={removeAction}
+                />
+              ))}
+            </tbody>
+          </table>
+          <button onClick={addAction} style={{ marginTop: '10px' }}>
+            Add Action
+          </button>
+        </>)}
     </div>
   );
 };

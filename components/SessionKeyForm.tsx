@@ -46,12 +46,14 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
       </div>
       <div style={styles.status}>
         <h4>ERC-7579 module installed:</h4>
-        <p>{is7579Installed ? 'Yes ✅' : 'No, Click to create a session key'}</p>
+        <p>{is7579Installed ? 'Yes ✅' : 'No, Click on "Setup the Session" to create a session key'}</p>
       </div>
 
       <ActionTable actions={session.actions} onActionsChange={handleActionsUpdate} />
 
-      <div style={styles.actionSection}>
+      <h3>Session manager</h3>
+      <div style={styles.buttonGroup}>
+      
         {!is7579Installed && (
           <button
             disabled={loading || is7579Installed}
@@ -75,9 +77,6 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             Setup the session
           </button>
         )}
-      </div>
-
-      <div style={styles.buttonGroup}>
         <button
           style={styles.button}
           disabled={loading || !is7579Installed || !session}
@@ -98,6 +97,10 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
         >
           Update the session
         </button>
+      </div>
+      <h3>Token manager</h3>
+      <div style={styles.buttonGroup}>
+
         <button
           style={styles.button}
           disabled={loading || !is7579Installed}
@@ -220,6 +223,8 @@ const styles = {
   },
   actionSection: {
     marginBottom: '20px',
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   buttonGroup: {
     display: 'flex',
