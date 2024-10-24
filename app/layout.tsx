@@ -30,6 +30,7 @@ export default function RootLayout({
         settings={{
           environmentId: '336e4f47-b1d1-44f3-bea0-129795426bfd',
           walletConnectors: [EthereumWalletConnectors],
+          social: {strategy: 'popup'}
           // Add other configuration options as needed
         }}
       >
