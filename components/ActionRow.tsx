@@ -1,7 +1,7 @@
-import { Address, Hex, parseAbi, toFunctionSelector } from 'viem';
+import { AbiFunction, Address, Hex, parseAbi, toFunctionSelector } from 'viem';
 import React, { useEffect, useState } from 'react';
 import { ActionData } from '@rhinestone/module-sdk';
-import {debounce} from 'lodash'; // Optional: Use debounce to improve input handling
+import { debounce } from 'lodash'; // Optional: Use debounce to improve input handling
 
 interface ActionRowProps {
     action: ActionData;
@@ -14,6 +14,7 @@ const ActionRow: React.FC<ActionRowProps> = ({ action, index, onInputChange, onR
     const [contractAddress, setContractAddress] = useState<Hex>(action.actionTarget);
     const [contractABI, setContractABI] = useState<any>(null);
     const [loadingABI, setLoadingABI] = useState<boolean>(false); // Loading state
+    const [abiError, setAbiError] = useState<string | null>(null)
 
     useEffect(() => {
         if (!contractAddress) return; // Prevent fetching if the address is not set
@@ -24,15 +25,17 @@ const ActionRow: React.FC<ActionRowProps> = ({ action, index, onInputChange, onR
                 const response = await fetch(`https://abidata.net/${contractAddress}?network=sepolia`);
                 const json = await response.json();
                 let abi = []
-                if (json.abi[1].name !== 'CloseStream') {
+                if (json.abi[1].name !== 'CloseStream') { // Somehow etherscan provides an ABI for EOA wallet.
                     abi = json.abi.filter((line: { type: string; stateMutability: string }) => {
                         return line.type === 'function' && line.stateMutability === 'nonpayable';
                     });
                 }
-                abi.push({name: 'native-transfer'})
+                abi.push({ name: 'native-transfer' })
                 setContractABI(abi);
+                setAbiError(null);
             } catch (error) {
-                setContractABI([{name: 'native-transfer'}]);
+                setAbiError('Failed to fetch contract ABI');
+                setContractABI([{ name: 'native-transfer' }]);
             } finally {
                 setLoadingABI(false); // Set loading state to false
             }
@@ -50,6 +53,8 @@ const ActionRow: React.FC<ActionRowProps> = ({ action, index, onInputChange, onR
     return (
         <tr>
             <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+                {abiError && <div style={{ color: 'red' }}>{abiError + " Please enter an address"}</div>} {/* Error message */}
+
                 <input
                     type="text"
                     defaultValue={action.actionTarget}
@@ -61,7 +66,7 @@ const ActionRow: React.FC<ActionRowProps> = ({ action, index, onInputChange, onR
                     defaultValue={action.actionTargetSelector}
                     onChange={(e) => {
                         const selectedIndex = e.target.selectedIndex;
-                        let functionSelector = '0x00000000' as Hex
+                        let functionSelector = '0x00000000' as Hex;
                         if (e.target.value !== 'native-transfer') {
                             functionSelector = contractABI ? toFunctionSelector(contractABI[selectedIndex]) : '0x';
                         }
@@ -71,8 +76,8 @@ const ActionRow: React.FC<ActionRowProps> = ({ action, index, onInputChange, onR
                     {loadingABI ? (
                         <option value="">Loading ABI...</option> // Show loading option
                     ) : contractABI ? (
-                        contractABI.map((func: {name: string}) => (
-                            <option key={func.name} value={func.name}>
+                        contractABI.map((func: AbiFunction) => (
+                            <option key={func.name} value={func.name} selected={action.actionTargetSelector == toFunctionSelector(func)}>
                                 {func.name}
                             </option>
                         ))

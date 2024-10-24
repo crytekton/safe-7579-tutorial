@@ -21,6 +21,7 @@ const ActionTable: React.FC<ActionTableProps> = ({ actions: actionsData, onActio
     field: 'actionTarget' | 'actionTargetSelector',
     value: Address | Hex
   ) => {
+    console.log(value)
     const updatedActions = [...actionsData];
     updatedActions[index][field] = value;
     onActionsChange(updatedActions); // Call parent function to update state
@@ -34,6 +35,7 @@ const ActionTable: React.FC<ActionTableProps> = ({ actions: actionsData, onActio
   const removeAction = (index: number) => {
     const updatedActions = actionsData.filter((_, i) => i !== index);
     onActionsChange(updatedActions); // Update parent state
+    console.log("table", actionsData)
   };
 
   return (
