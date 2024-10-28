@@ -89,30 +89,6 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
             Setup the session with Smart sessions
           </button>
         )}
-         {!is7579Installed && (
-          <button
-            disabled={loading || is7579Installed}
-            style={styles.button}
-            onClick={async () => {
-              setLoading(true);
-              setError(false);
-              installRoles(safe)
-                .then(txHash => {
-                  setTxHash(txHash);
-                  updateTransactionHistory(txHash, true)
-                  setLoading(false);
-                  setIs7579Installed(true);
-                })
-                .catch(err => {
-                  console.error(err);
-                  setLoading(false);
-                  setError(true);
-                });
-            }}
-          >
-            Install the session with Roles
-          </button>
-        )}
         <button
           style={styles.button}
           disabled={loading || !is7579Installed || !session}
@@ -157,27 +133,6 @@ const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
           }}
         >
           Mint USDT
-        </button>
-        <button
-          style={styles.button}
-          disabled={loading || !is7579Installed}
-          onClick={async () => {
-            setLoading(true);
-            setError(false);
-            rolesMint()
-              .then(txHash => {
-                setTxHash(txHash);
-                updateTransactionHistory(txHash, true)
-                setLoading(false);
-              })
-              .catch(err => {
-                console.error(err);
-                setLoading(false);
-                setError(true);
-              });
-          }}
-        >
-          Mint USDT with role 
         </button>
       </div>
 
