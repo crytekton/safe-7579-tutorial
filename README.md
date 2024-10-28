@@ -2,6 +2,12 @@
 
 This project demonstrates the use of smart sessions with **Safe Protocol**, implemented using **Next.js** and **TypeScript**. The app includes components for managing contract actions and session keys, alongside utilities for blockchain interactions.
 
+## Setup
+In this demo, we’ll showcase the power of a Safe smart account configured for single-signer (1/1) functionality, integrated with a dynamically generated signer enabled by Rhinestone's Smart Sessions validator. This setup empowers the Safe account to operate with session-based keys, allowing predefined actions without requiring the owner’s signature for each transaction.
+
+This approach leverages session keys with restricted permissions, ensuring security and flexibility for various blockchain interactions, including ERC20 transactions, DEX trades, and interactions with other contracts, all managed seamlessly through the validator module.
+!(images/setup.png)
+
 ## Project Structure
 
 - **app/components**: UI components such as `ActionRow`, `ActionTable`, and `SessionKeyForm` for managing contract actions and session data.

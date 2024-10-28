@@ -5,7 +5,6 @@ import { SafeSmartAccountClient } from '@/lib/permissionless'
 import ActionTable from './ActionTable'
 import { defaultSession, install7579SessionModule, sessionKeyMint, sessionKeyERC20Transfer, updateSession, sessionKeyNativeTransfer } from '@/lib/smartSession'
 import { Hex } from 'viem'
-import { installRoles, rolesMint } from '@/lib/roles'
 
 const SessionKeyForm: React.FC<{ safe: SafeSmartAccountClient }> = ({
   safe
